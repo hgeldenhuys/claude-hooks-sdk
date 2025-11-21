@@ -242,7 +242,7 @@ manager.onStop(async (input) => {
 - Code review workflows
 - Lint only changed files
 
-See [EDIT-TRACKING.md](./EDIT-TRACKING.md) for complete documentation.
+See [docs/guides/EDIT-TRACKING.md](./docs/guides/EDIT-TRACKING.md) for complete documentation.
 
 ---
 
@@ -364,7 +364,7 @@ manager.onPreToolUse(async (input) => {
 - Critical validation
 - Compliance checks
 
-See [NON-BLOCKING-HOOKS.md](./NON-BLOCKING-HOOKS.md) for complete documentation.
+See [docs/guides/NON-BLOCKING-HOOKS.md](./docs/guides/NON-BLOCKING-HOOKS.md) for complete documentation.
 - **Analytics Ready**: Perfect for sending to analytics platforms
 - **Debugging**: Easily trace event chains
 
@@ -482,7 +482,7 @@ console.log(`Processed: ${result.processed}`);
 - **External Services**: Queue events when external service is down
 - **Rate Limiting**: Respect rate limits by queuing excess events
 
-**📖 For detailed documentation, see [FAILURE-QUEUE.md](./FAILURE-QUEUE.md)**
+**📖 For detailed documentation, see [docs/guides/FAILURE-QUEUE.md](./docs/guides/FAILURE-QUEUE.md)**
 
 ---
 

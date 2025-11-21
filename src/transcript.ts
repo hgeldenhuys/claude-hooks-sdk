@@ -1,6 +1,6 @@
 /**
  * Transcript Types and Utilities
- * Extracted from @agios/transcript-types for zero-dependency SDK
+ * Provides zero-dependency utilities for parsing Claude Code transcripts
  */
 
 /**

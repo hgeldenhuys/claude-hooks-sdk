@@ -68,7 +68,7 @@ Users add your marketplace and install examples:
 
 ```bash
 # Add the marketplace
-/plugin marketplace add hgeldenhuys/agios/packages/claude-hooks-sdk
+/plugin marketplace add hgeldenhuys/claude-hooks-sdk
 
 # List available plugins
 /plugin list
@@ -152,7 +152,7 @@ bun test.ts
 
 ```bash
 # In Claude Code, test marketplace
-/plugin marketplace add hgeldenhuys/agios/packages/claude-hooks-sdk
+/plugin marketplace add hgeldenhuys/claude-hooks-sdk
 
 # Verify plugin shows up
 /plugin list
@@ -185,9 +185,9 @@ git push
 
 If users encounter issues:
 
-- **npm issues**: https://github.com/hgeldenhuys/agios/issues
-- **Plugin issues**: https://github.com/hgeldenhuys/agios/issues
-- **Documentation**: https://github.com/hgeldenhuys/agios/tree/main/packages/claude-hooks-sdk
+- **npm issues**: https://github.com/hgeldenhuys/claude-hooks-sdk/issues
+- **Plugin issues**: https://github.com/hgeldenhuys/claude-hooks-sdk/issues
+- **Documentation**: https://github.com/hgeldenhuys/claude-hooks-sdk
 
 ## Next Steps After Publishing
 

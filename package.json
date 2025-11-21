@@ -50,11 +50,10 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/hgeldenhuys/agios.git",
-    "directory": "packages/claude-hooks-sdk"
+    "url": "git+https://github.com/hgeldenhuys/claude-hooks-sdk.git"
   },
-  "homepage": "https://github.com/hgeldenhuys/agios/tree/main/packages/claude-hooks-sdk#readme",
+  "homepage": "https://github.com/hgeldenhuys/claude-hooks-sdk#readme",
   "bugs": {
-    "url": "https://github.com/hgeldenhuys/agios/issues"
+    "url": "https://github.com/hgeldenhuys/claude-hooks-sdk/issues"
   }
 }

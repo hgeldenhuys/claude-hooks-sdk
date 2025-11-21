@@ -8,17 +8,17 @@
 
 ## Features
 
-✅ **Full Type Safety** - Complete TypeScript types for all 10 Claude Code hook events
-✅ **Fluent API** - Intuitive `manager.onPreToolUse(...)` handler registration
-✅ **Zero Dependencies** - No runtime dependencies, works anywhere
-✅ **Non-Blocking by Default** - Hook failures don't block Claude Code (opt-in blocking available)
-✅ **Built-in Event Logging** - Enable with one flag, organized by client ID
-✅ **Edit Tracking** - Automatically track files modified during Claude's response
-✅ **Context Tracking** - Automatic transaction IDs, prompt IDs, git metadata, and parent session tracking
-✅ **Failure Queue** - Sequential event processing with automatic retry (FIFO)
-✅ **Transcript Access** - Built-in utilities for parsing and searching conversation history
-✅ **Plugin System** - Extensible architecture for custom integrations
-✅ **Async/Await Support** - Full async handler support for API calls, database queries, etc.
+- ✅ **Full Type Safety** - Complete TypeScript types for all 10 Claude Code hook events
+- ✅ **Fluent API** - Intuitive `manager.onPreToolUse(...)` handler registration
+- ✅ **Zero Dependencies** - No runtime dependencies, works anywhere
+- ✅ **Non-Blocking by Default** - Hook failures don't block Claude Code (opt-in blocking available)
+- ✅ **Built-in Event Logging** - Enable with one flag, organized by client ID
+- ✅ **Edit Tracking** - Automatically track files modified during Claude's response
+- ✅ **Context Tracking** - Automatic transaction IDs, prompt IDs, git metadata, and parent session tracking
+- ✅ **Failure Queue** - Sequential event processing with automatic retry (FIFO)
+- ✅ **Transcript Access** - Built-in utilities for parsing and searching conversation history
+- ✅ **Plugin System** - Extensible architecture for custom integrations
+- ✅ **Async/Await Support** - Full async handler support for API calls, database queries, etc.
 
 ## Table of Contents
 
@@ -52,7 +52,7 @@ Install pre-built example hooks via the Claude Code marketplace:
 
 ```bash
 # Add the marketplace
-/plugin marketplace add hgeldenhuys/agios/packages/claude-hooks-sdk
+/plugin marketplace add hgeldenhuys/claude-hooks-sdk
 
 # Install the examples plugin
 /plugin install claude-hooks-sdk-examples
@@ -840,4 +840,4 @@ Contributions welcome! Please read our [contributing guidelines](CONTRIBUTING.md
 
 ## Related Projects
 
-- `@agios/hooks-sdk` - Enhanced version with API integration (used by Agios platform)
+This is the standalone, zero-dependency version of the SDK. For platform-specific integrations, check the repository for additional tooling.

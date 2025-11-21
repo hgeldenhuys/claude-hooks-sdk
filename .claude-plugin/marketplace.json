@@ -7,14 +7,15 @@
     {
       "name": "claude-hooks-sdk-examples",
       "source": "github:hgeldenhuys/claude-hooks-sdk#main",
-      "version": "0.4.3",
-      "description": "Production-ready hook examples: event logging, edit tracking, failure queue, context correlation",
+      "version": "0.4.4",
+      "description": "Production-ready hook examples + comprehensive SDK skill. Event logging, edit tracking, failure queue, context correlation.",
       "author": "Herman Geldenhuys",
       "keywords": [
         "hooks",
         "examples",
         "event-logging",
-        "observability"
+        "observability",
+        "skill"
       ]
     }
   ]

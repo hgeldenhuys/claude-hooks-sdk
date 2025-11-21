@@ -1,6 +1,6 @@
 {
   "name": "claude-hooks-sdk-examples",
-  "version": "0.4.3",
+  "version": "0.4.4",
   "description": "Production-ready Claude Code hook examples built with claude-hooks-sdk. Includes event logging, edit tracking, failure queue, and context correlation.",
   "author": {
     "name": "Herman Geldenhuys",
@@ -18,5 +18,12 @@
     "edit-tracking",
     "observability"
   ],
-  "hooks": "./hooks.json"
+  "hooks": "./hooks.json",
+  "skills": [
+    {
+      "name": "claude-hooks-sdk",
+      "path": "../.claude/skills/claude-hooks-sdk.md",
+      "description": "Expert guide for building Claude Code hooks. Covers setup, configuration, patterns, and troubleshooting."
+    }
+  ]
 }

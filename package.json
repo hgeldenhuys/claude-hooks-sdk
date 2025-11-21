@@ -19,6 +19,7 @@
     "docs",
     "sample-extension",
     ".claude-plugin",
+    ".claude",
     "README.md",
     "CHANGELOG.md",
     "LICENSE"

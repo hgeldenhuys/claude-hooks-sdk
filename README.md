@@ -46,19 +46,28 @@ npm install claude-hooks-sdk
 bun add claude-hooks-sdk
 ```
 
-### Method 2: Claude Code Plugin (For Ready-to-Use Examples)
+### Method 2: Claude Code Plugin (For Ready-to-Use Examples + Expert Skill)
 
-Install pre-built example hooks via the Claude Code marketplace:
+Install pre-built example hooks and comprehensive SDK skill via the Claude Code marketplace:
 
 ```bash
 # Add the marketplace
 /plugin marketplace add hgeldenhuys/claude-hooks-sdk
 
-# Install the examples plugin
+# Install the plugin (includes examples + skill)
 /plugin install claude-hooks-sdk-examples
 ```
 
-This gives you production-ready hooks:
+**What you get:**
+
+📚 **Expert Skill** - Makes Claude Code self-aware of the SDK:
+```bash
+/skill claude-hooks-sdk
+# Now Claude can answer: "How do I enable edit tracking?"
+# "Show me a blocking hook example", etc.
+```
+
+🔌 **Production-Ready Hooks:**
 - **event-logger** - Full-featured event logging with edit tracking
 - **failure-queue-demo** - Automatic retry queue demonstration
 - **edit-tracking** - Track files modified by Claude
@@ -612,9 +621,26 @@ manager.use(myPlugin);
 
 ## Documentation
 
+### 🧠 Interactive Skill (Recommended)
+
+Install the **claude-hooks-sdk skill** for interactive guidance:
+
+```bash
+/plugin marketplace add hgeldenhuys/claude-hooks-sdk
+/plugin install claude-hooks-sdk-examples
+/skill claude-hooks-sdk
+```
+
+The skill makes Claude Code self-aware of the SDK - ask questions like:
+- "How do I enable edit tracking?"
+- "Show me a blocking hook example"
+- "Why aren't my logs appearing?"
+
+### 📚 Written Guides
+
 Comprehensive guides and references in the [`docs/`](./docs/) directory:
 
-### 📚 Feature Guides
+#### Feature Guides
 - **[Edit Tracking](./docs/guides/EDIT-TRACKING.md)** - Automatically track files modified by Claude
 - **[Non-Blocking Hooks](./docs/guides/NON-BLOCKING-HOOKS.md)** - Error handling that doesn't block Claude Code
 - **[Failure Queue](./docs/guides/FAILURE-QUEUE.md)** - Sequential event processing with automatic retry

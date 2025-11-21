@@ -1,0 +1,60 @@
+{
+  "name": "claude-hooks-sdk",
+  "version": "0.4.1",
+  "description": "Type-safe TypeScript SDK for building Claude Code hook extensions with edit tracking, context correlation, and non-blocking error handling",
+  "author": "Herman Geldenhuys <hgeldenhuys@gmail.com>",
+  "license": "MIT",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    }
+  },
+  "files": [
+    "dist",
+    "src",
+    "docs",
+    "sample-extension",
+    ".claude-plugin",
+    "README.md",
+    "CHANGELOG.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "test": "bun test",
+    "typecheck": "tsc --noEmit",
+    "prepublishOnly": "bun run build"
+  },
+  "keywords": [
+    "claude",
+    "claude-code",
+    "hooks",
+    "typescript",
+    "sdk",
+    "observability",
+    "event-tracking",
+    "non-blocking",
+    "async",
+    "ai-tools"
+  ],
+  "devDependencies": {
+    "@types/bun": "latest",
+    "typescript": "^5.6.3"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/hgeldenhuys/agios",
+    "directory": "packages/claude-hooks-sdk"
+  },
+  "homepage": "https://github.com/hgeldenhuys/agios/tree/main/packages/claude-hooks-sdk#readme",
+  "bugs": {
+    "url": "https://github.com/hgeldenhuys/agios/issues"
+  }
+}

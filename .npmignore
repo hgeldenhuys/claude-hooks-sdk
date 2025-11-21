@@ -1,0 +1,31 @@
+# Exclude from npm package
+
+# Test/example logs
+sample-extension/logs/
+
+# Build artifacts
+*.tsbuildinfo
+.turbo/
+
+# Development files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Tests
+*.test.ts
+test/
+coverage/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Git
+.git/
+.gitignore
+.gitattributes
+
+# CI/CD
+.github/

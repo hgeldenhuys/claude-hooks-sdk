@@ -1,0 +1,32 @@
+{
+  "event-logger": {
+    "description": "Production event logger with full v0.4.1 features",
+    "path": "../sample-extension/event-logger-v2.ts",
+    "events": [
+      "SessionStart",
+      "SessionEnd",
+      "PreToolUse",
+      "PostToolUse",
+      "UserPromptSubmit",
+      "Stop",
+      "SubagentStop",
+      "Notification",
+      "PreCompact"
+    ]
+  },
+  "failure-queue-demo": {
+    "description": "Demonstrates automatic retry queue with FIFO processing",
+    "path": "../sample-extension/failure-queue-demo.ts",
+    "events": ["SessionStart", "Stop"]
+  },
+  "edit-tracking": {
+    "description": "Track files modified by Claude (Edit, Write, MultiEdit tools)",
+    "path": "../sample-extension/test-edit-tracking.ts",
+    "events": ["UserPromptSubmit", "PostToolUse", "Stop"]
+  },
+  "non-blocking": {
+    "description": "Non-blocking error handling demonstration",
+    "path": "../sample-extension/test-non-blocking.ts",
+    "events": ["SessionStart"]
+  }
+}

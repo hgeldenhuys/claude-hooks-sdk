@@ -1,0 +1,56 @@
+{
+  "PreToolUse": [
+    "cwd",
+    "hook_event_name",
+    "permission_mode",
+    "session_id",
+    "tool_input",
+    "tool_name",
+    "tool_use_id",
+    "transcript_path"
+  ],
+  "SessionStart": [
+    "cwd",
+    "hook_event_name",
+    "session_id",
+    "source",
+    "transcript_path"
+  ],
+  "SubagentStop": [
+    "agent_id",
+    "agent_transcript_path",
+    "cwd",
+    "hook_event_name",
+    "permission_mode",
+    "session_id",
+    "stop_hook_active",
+    "transcript_path"
+  ],
+  "UserPromptSubmit": [
+    "cwd",
+    "hook_event_name",
+    "permission_mode",
+    "prompt",
+    "session_id",
+    "transcript_path"
+  ],
+  "PostToolUse": [
+    "cwd",
+    "hook_event_name",
+    "permission_mode",
+    "session_id",
+    "tool_input",
+    "tool_name",
+    "tool_response",
+    "tool_use_id",
+    "transcript_path"
+  ],
+  "Stop": [
+    "cwd",
+    "hook_event_name",
+    "permission_mode",
+    "session_id",
+    "stop_hook_active",
+    "transcript_path"
+  ]
+}

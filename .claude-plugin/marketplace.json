@@ -2,12 +2,12 @@
   "name": "Claude Hooks SDK",
   "owner": "hgeldenhuys",
   "description": "Official marketplace for claude-hooks-sdk examples and templates",
-  "homepage": "https://github.com/hgeldenhuys/agios/tree/main/packages/claude-hooks-sdk",
+  "homepage": "https://github.com/hgeldenhuys/claude-hooks-sdk",
   "plugins": [
     {
       "name": "claude-hooks-sdk-examples",
-      "source": "github:hgeldenhuys/agios#main:packages/claude-hooks-sdk",
-      "version": "0.4.1",
+      "source": "github:hgeldenhuys/claude-hooks-sdk#main",
+      "version": "0.4.3",
       "description": "Production-ready hook examples: event logging, edit tracking, failure queue, context correlation",
       "author": "Herman Geldenhuys",
       "keywords": [

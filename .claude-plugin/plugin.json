@@ -1,14 +1,14 @@
 {
   "name": "claude-hooks-sdk-examples",
-  "version": "0.4.1",
+  "version": "0.4.3",
   "description": "Production-ready Claude Code hook examples built with claude-hooks-sdk. Includes event logging, edit tracking, failure queue, and context correlation.",
   "author": {
     "name": "Herman Geldenhuys",
     "email": "hgeldenhuys@gmail.com",
     "url": "https://github.com/hgeldenhuys"
   },
-  "homepage": "https://github.com/hgeldenhuys/agios/tree/main/packages/claude-hooks-sdk",
-  "repository": "https://github.com/hgeldenhuys/agios",
+  "homepage": "https://github.com/hgeldenhuys/claude-hooks-sdk",
+  "repository": "https://github.com/hgeldenhuys/claude-hooks-sdk",
   "license": "MIT",
   "keywords": [
     "claude-code",

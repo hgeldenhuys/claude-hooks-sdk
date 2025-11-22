@@ -19,6 +19,7 @@
 - ✅ **Transcript Access** - Built-in utilities for parsing and searching conversation history
 - ✅ **Plugin System** - Extensible architecture for custom integrations
 - ✅ **Async/Await Support** - Full async handler support for API calls, database queries, etc.
+- 🆕 **Transform Utilities** - Conversation logging, file tracking, todo monitoring, AI summaries
 
 ## Table of Contents
 
@@ -133,6 +134,228 @@ Register the hook in `.claude/settings.json`:
     ]
   }
 }
+```
+
+## Transform Utilities
+
+**NEW**: Convenient transform utilities for common hook patterns.
+
+The SDK now includes powerful transform utilities that make it easy to implement common logging and analytics patterns. These are production-ready and can be used in backend services.
+
+### Available Transforms
+
+1. **ConversationLogger** - Track conversation turns with user prompts and assistant responses
+2. **FileChangeTracker** - Monitor file modifications from Write/Edit/MultiEdit tools
+3. **TodoTracker** - Track todo items and progress
+4. **AISummarizer** - Auto-summarize Stop events using Claude Haiku
+
+### Quick Start with Transforms
+
+```typescript
+import {
+  HookManager,
+  success,
+  ConversationLogger,
+  FileChangeTracker,
+  TodoTracker,
+} from 'claude-hooks-sdk';
+
+const conversationLogger = new ConversationLogger();
+const fileTracker = new FileChangeTracker();
+const todoTracker = new TodoTracker();
+
+const manager = new HookManager();
+
+manager
+  .onUserPromptSubmit((input) => {
+    conversationLogger.recordUserPrompt(input);
+    return success();
+  })
+  .onPreToolUse((input) => {
+    conversationLogger.recordToolUse(input.tool_name);
+    return success();
+  })
+  .onPostToolUse((input) => {
+    fileTracker.recordChange(input);
+    todoTracker.recordTodoWrite(input);
+    return success();
+  })
+  .onStop(async (input, context) => {
+    // Get all transform data
+    const turn = await conversationLogger.recordStop(input, context);
+    const files = fileTracker.getBatch(input.session_id);
+    const todos = todoTracker.getSnapshot(input.session_id);
+
+    console.log('Conversation Turn:', turn.turn_number);
+    console.log('Files Modified:', files.total_files);
+    console.log('Todo Progress:', todoTracker.getCompletionPercentage(input.session_id) + '%');
+
+    return success();
+  });
+
+manager.run();
+```
+
+### Example Output
+
+**Conversation Turn:**
+```json
+{
+  "assistant": {
+    "content": "I'll help you implement that feature...",
+    "timestamp": "2025-11-21T23:00:00.000Z",
+    "toolsUsed": ["Read", "Edit", "TodoWrite"]
+  },
+  "user_prompts": [
+    { "text": "Can you add error handling?", "timestamp": "..." }
+  ],
+  "turn_number": 5,
+  "session_id": "abc123"
+}
+```
+
+**File Changes:**
+```json
+{
+  "file": "src/utils/api.ts",
+  "operation": "modified",
+  "tool": "Edit",
+  "timestamp": "2025-11-21T23:00:00.000Z",
+  "session_id": "abc123",
+  "size_hint": 1234
+}
+```
+
+**Todo Progress:**
+```json
+{
+  "event_type": "todos_updated",
+  "todos": [...],
+  "completed": 3,
+  "in_progress": 1,
+  "pending": 2,
+  "timestamp": "2025-11-21T23:00:00.000Z"
+}
+```
+
+**AI Summary (requires ANTHROPIC_API_KEY):**
+```json
+{
+  "summary": "Added error handling to API utility functions",
+  "model": "claude-haiku-3-5-20241022",
+  "input_tokens": 125,
+  "output_tokens": 12,
+  "timestamp": "2025-11-21T23:00:00.000Z"
+}
+```
+
+### Complete Examples
+
+See [`examples/transforms/`](./examples/transforms/) for complete working examples:
+
+- **conversation-logger.ts** - Chat-style logging
+- **file-changes-logger.ts** - File modification tracking
+- **todo-logger.ts** - Todo progress monitoring
+- **ai-summarizer.ts** - Automatic Stop event summaries
+- **all-transforms.ts** - All transforms combined
+
+### Transform API Reference
+
+#### ConversationLogger
+
+```typescript
+const logger = new ConversationLogger();
+
+// Record events
+logger.recordUserPrompt(input);
+logger.recordToolUse(toolName);
+const turn = await logger.recordStop(input, context);
+
+// Utilities
+logger.getTurnNumber(); // Current turn number
+logger.reset(); // Reset state
+```
+
+#### FileChangeTracker
+
+```typescript
+const tracker = new FileChangeTracker();
+
+// Record changes
+const change = tracker.recordChange(input);
+
+// Get data
+const batch = tracker.getBatch(sessionId);
+const files = tracker.getUniqueFiles(sessionId);
+const count = tracker.getFileModificationCount(sessionId, filePath);
+
+// Cleanup
+tracker.clearSession(sessionId);
+```
+
+#### TodoTracker
+
+```typescript
+const tracker = new TodoTracker();
+
+// Record todos
+const event = tracker.recordTodoWrite(input);
+
+// Get data
+const snapshot = tracker.getSnapshot(sessionId);
+const inProgress = tracker.getTodosByStatus(sessionId, 'in_progress');
+const pct = tracker.getCompletionPercentage(sessionId);
+
+// Cleanup
+tracker.clearSession(sessionId);
+```
+
+#### AISummarizer
+
+```typescript
+const summarizer = new AISummarizer({
+  apiKey: process.env.ANTHROPIC_API_KEY!,
+  model: 'claude-haiku-3-5-20241022',
+});
+
+// Generate summaries
+const summary = await summarizer.summarizeStop(input, context);
+
+// Custom prompts
+const custom = await summarizer.summarizeWithPrompt(
+  content,
+  'Summarize: {content}',
+  sessionId
+);
+
+// Utilities
+summarizer.getTurnNumber(); // Current turn
+summarizer.reset(); // Reset counter
+```
+
+### Production Usage
+
+```typescript
+manager.onStop(async (input, context) => {
+  const turn = await conversationLogger.recordStop(input, context);
+  const files = fileTracker.getBatch(input.session_id);
+  const todos = todoTracker.getSnapshot(input.session_id);
+
+  // Send to your analytics backend
+  await fetch('https://api.example.com/sessions/events', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      type: 'stop',
+      conversation: turn,
+      files,
+      todos,
+      timestamp: new Date().toISOString(),
+    }),
+  });
+
+  return success();
+});
 ```
 
 ## Built-in Event Logging

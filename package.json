@@ -1,7 +1,7 @@
 {
   "name": "claude-hooks-sdk",
-  "version": "0.5.0",
-  "description": "Type-safe TypeScript SDK for building Claude Code hook extensions with edit tracking, context correlation, and non-blocking error handling",
+  "version": "0.6.0",
+  "description": "Type-safe TypeScript SDK for building Claude Code hook extensions with edit tracking, context correlation, transform utilities, and non-blocking error handling",
   "author": "Herman Geldenhuys <hgeldenhuys@gmail.com>",
   "license": "MIT",
   "type": "module",
@@ -17,6 +17,7 @@
     "dist",
     "src",
     "docs",
+    "examples",
     "sample-extension",
     ".claude-plugin",
     ".claude",

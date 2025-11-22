@@ -100,3 +100,31 @@ export { success, block, error, matchesTool, isMCPTool, parseMCPTool } from './u
 // Export transcript utilities
 export type { ConversationLine } from './transcript';
 export { getLastTranscriptLine, parseTranscript } from './transcript';
+
+// Export transform utilities
+export {
+  // Conversation logging
+  ConversationLogger,
+  createConversationTurn,
+  type ConversationTurn,
+  // File tracking
+  FileChangeTracker,
+  extractFileChange,
+  isFileOperation,
+  type FileChange,
+  type FileChangesBatch,
+  // Todo tracking
+  TodoTracker,
+  extractTodoEvent,
+  isTodoWrite,
+  formatTodos,
+  type Todo,
+  type TodoEvent,
+  type TodoSnapshot,
+  // AI summarization
+  AISummarizer,
+  summarizeWithClaude,
+  type SummaryEvent,
+  type ClaudeMessage,
+  type ClaudeAPIResponse,
+} from './transforms';

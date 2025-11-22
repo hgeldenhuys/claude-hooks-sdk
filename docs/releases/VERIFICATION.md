@@ -43,7 +43,7 @@ $ echo '{"hook_event_name":"SessionStart",...}' | bun event-logger-v2.ts
     "session_id": "test-final",
     "source": "startup",
     "cwd": "/path/to/your/project",
-    "transcript_path": "/Users/hgeldenhuys/.claude/transcripts/latest.jsonl"
+    "transcript_path": "/Users/username/.claude/transcripts/latest.jsonl"
   },
   "timestamp": "2025-11-21T17:02:36.494Z",
   "conversation": null,

@@ -161,7 +161,7 @@ import {
   ConversationLogger,
   FileChangeTracker,
   TodoTracker,
-} from '@agios/hooks-sdk';
+} from 'claude-hooks-sdk';
 
 const conversationLogger = new ConversationLogger();
 const fileTracker = new FileChangeTracker();
@@ -247,7 +247,7 @@ manager.onStop(async (input, context) => {
 ### ConversationLogger
 
 ```typescript
-import { ConversationLogger } from '@agios/hooks-sdk';
+import { ConversationLogger } from 'claude-hooks-sdk';
 
 const logger = new ConversationLogger();
 
@@ -270,7 +270,7 @@ logger.reset();
 ### FileChangeTracker
 
 ```typescript
-import { FileChangeTracker } from '@agios/hooks-sdk';
+import { FileChangeTracker } from 'claude-hooks-sdk';
 
 const tracker = new FileChangeTracker();
 
@@ -293,7 +293,7 @@ tracker.clearSession(sessionId);
 ### TodoTracker
 
 ```typescript
-import { TodoTracker } from '@agios/hooks-sdk';
+import { TodoTracker } from 'claude-hooks-sdk';
 
 const tracker = new TodoTracker();
 
@@ -316,7 +316,7 @@ tracker.clearSession(sessionId);
 ### AISummarizer
 
 ```typescript
-import { AISummarizer } from '@agios/hooks-sdk';
+import { AISummarizer } from 'claude-hooks-sdk';
 
 const summarizer = new AISummarizer({
   apiKey: process.env.ANTHROPIC_API_KEY!,

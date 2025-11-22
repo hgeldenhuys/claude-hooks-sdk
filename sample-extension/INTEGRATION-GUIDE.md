@@ -64,7 +64,7 @@ Every hook event will log:
   "event": "PreToolUse",
   "sessionId": "abc-123-def-456",
   "toolName": "Read",
-  "cwd": "/Users/hgeldenhuys/WebstormProjects/agios",
+  "cwd": "/path/to/your/project",
   "exitCode": 0,
   "success": true
 }

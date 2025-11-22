@@ -9,12 +9,12 @@
 rm -rf .claude/hooks/failure-queue-demo/
 
 # Event 1: Will fail on first attempt
-echo '{"hook_event_name":"PreToolUse","session_id":"test-1","tool_name":"Read","tool_input":{"file_path":"/test"},"cwd":"/Users/hgeldenhuys/WebstormProjects/agios","transcript_path":"/Users/hgeldenhuys/.claude/transcripts/latest.jsonl"}' | bun sample-extension/failure-queue-demo.ts
+echo '{"hook_event_name":"PreToolUse","session_id":"test-1","tool_name":"Read","tool_input":{"file_path":"/test"},"cwd":"/path/to/your/project","transcript_path":"/Users/hgeldenhuys/.claude/transcripts/latest.jsonl"}' | bun sample-extension/failure-queue-demo.ts
 
 # Expected: Exit code 1, event added to queue
 
 # Event 2: Will be queued because queue is not empty
-echo '{"hook_event_name":"PostToolUse","session_id":"test-2","tool_name":"Write","tool_input":{"file_path":"/test"},"cwd":"/Users/hgeldenhuys/WebstormProjects/agios","transcript_path":"/Users/hgeldenhuys/.claude/transcripts/latest.jsonl"}' | bun sample-extension/failure-queue-demo.ts
+echo '{"hook_event_name":"PostToolUse","session_id":"test-2","tool_name":"Write","tool_input":{"file_path":"/test"},"cwd":"/path/to/your/project","transcript_path":"/Users/hgeldenhuys/.claude/transcripts/latest.jsonl"}' | bun sample-extension/failure-queue-demo.ts
 
 # Expected: Exit code 0 (queued successfully), queue now has 2 events
 

@@ -42,7 +42,7 @@ $ echo '{"hook_event_name":"SessionStart",...}' | bun event-logger-v2.ts
     "hook_event_name": "SessionStart",
     "session_id": "test-final",
     "source": "startup",
-    "cwd": "/Users/hgeldenhuys/WebstormProjects/agios",
+    "cwd": "/path/to/your/project",
     "transcript_path": "/Users/hgeldenhuys/.claude/transcripts/latest.jsonl"
   },
   "timestamp": "2025-11-21T17:02:36.494Z",

@@ -84,7 +84,7 @@ Result: ✅ PASS
   "event": "SessionStart",
   "sessionId": "test-session-001",
   "toolName": null,
-  "cwd": "/Users/hgeldenhuys/WebstormProjects/agios",
+  "cwd": "/path/to/your/project",
   "exitCode": 0,
   "success": true
 }
@@ -97,7 +97,7 @@ Result: ✅ PASS
   "event": "PreToolUse",
   "sessionId": "test-session-001",
   "toolName": "Read",
-  "cwd": "/Users/hgeldenhuys/WebstormProjects/agios",
+  "cwd": "/path/to/your/project",
   "exitCode": 0,
   "success": true
 }
@@ -110,7 +110,7 @@ Result: ✅ PASS
   "event": "PostToolUse",
   "sessionId": "test-session-001",
   "toolName": "Write",
-  "cwd": "/Users/hgeldenhuys/WebstormProjects/agios",
+  "cwd": "/path/to/your/project",
   "exitCode": 0,
   "success": true
 }
@@ -123,7 +123,7 @@ Result: ✅ PASS
   "event": "Stop",
   "sessionId": "test-session-001",
   "toolName": null,
-  "cwd": "/Users/hgeldenhuys/WebstormProjects/agios",
+  "cwd": "/path/to/your/project",
   "exitCode": 0,
   "success": true
 }

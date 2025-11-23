@@ -32,7 +32,7 @@
     {
       "name": "anomaly-monitor",
       "source": "./.claude-plugin/plugins/anomaly-monitor",
-      "version": "0.7.0",
+      "version": "0.7.1",
       "description": "Real-time anomaly detection with Slack/webhook alerts. Detect error spikes, token anomalies, and response time issues automatically.",
       "author": {
         "name": "Herman Geldenhuys",
@@ -43,7 +43,7 @@
     {
       "name": "event-recorder",
       "source": "./.claude-plugin/plugins/event-recorder",
-      "version": "0.7.0",
+      "version": "0.7.1",
       "description": "Record all hook events to JSONL files for debugging, testing, and replay. Perfect for creating test fixtures from real sessions.",
       "author": {
         "name": "Herman Geldenhuys",
@@ -54,7 +54,7 @@
     {
       "name": "performance-monitor",
       "source": "./.claude-plugin/plugins/performance-monitor",
-      "version": "0.7.0",
+      "version": "0.7.1",
       "description": "Track response times, SLA compliance, and tool performance. Monitor p95/p99 metrics and get alerted when SLAs are breached.",
       "author": {
         "name": "Herman Geldenhuys",
@@ -65,7 +65,7 @@
     {
       "name": "file-auditor",
       "source": "./.claude-plugin/plugins/file-auditor",
-      "version": "0.7.0",
+      "version": "0.7.1",
       "description": "Comprehensive file change tracking with audit trails. Track every Write, Edit, and MultiEdit operation with timestamps and session IDs.",
       "author": {
         "name": "Herman Geldenhuys",
@@ -76,7 +76,7 @@
     {
       "name": "real-time-dashboard",
       "source": "./.claude-plugin/plugins/real-time-dashboard",
-      "version": "0.7.0",
+      "version": "0.7.1",
       "description": "Stream events to a live web dashboard via SSE. Monitor Claude Code sessions in real-time with a beautiful web interface.",
       "author": {
         "name": "Herman Geldenhuys",

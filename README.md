@@ -1099,6 +1099,40 @@ manager.onStop(async (input, context) => {
 });
 ```
 
+### Custom Backend Integration
+
+Complete production-ready example with mini Bun server and real-time HTML dashboard:
+
+👉 **[examples/custom-backend/](./examples/custom-backend/)** - Full backend integration example
+
+**Features:**
+- 🔌 HTTP POST integration with custom headers
+- 🖥️ Real-time HTML dashboard with auto-refresh
+- 🔐 API key authentication
+- ⚡ Timeout management and error handling
+- 🎨 Beautiful gradient UI with color-coded events
+- 📊 Event aggregation and visualization
+
+**Quick Start:**
+```bash
+# Start the server
+cd examples/custom-backend
+bun server.ts
+
+# Configure hook in .claude/settings.json
+{
+  "hooks": {
+    "SessionStart": [
+      { "type": "command", "command": "bun /path/to/examples/custom-backend/hook.ts" }
+    ]
+  }
+}
+
+# View dashboard at http://localhost:3030
+```
+
+See [examples/custom-backend/README.md](./examples/custom-backend/README.md) for complete documentation, testing instructions, and production deployment guide.
+
 ## Type Definitions
 
 All hook events are fully typed:

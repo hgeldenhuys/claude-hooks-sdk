@@ -1,21 +1,29 @@
 {
-  "name": "Claude Hooks SDK",
-  "owner": "hgeldenhuys",
+  "name": "claude-hooks-sdk",
+  "owner": {
+    "name": "Herman Geldenhuys",
+    "email": "hgeldenhuys@gmail.com"
+  },
   "description": "Official marketplace for claude-hooks-sdk examples and templates",
   "homepage": "https://github.com/hgeldenhuys/claude-hooks-sdk",
   "plugins": [
     {
       "name": "claude-hooks-sdk-examples",
-      "source": "github:hgeldenhuys/claude-hooks-sdk#main",
-      "version": "0.5.0",
-      "description": "Production-ready hook examples + comprehensive SDK skill. Event logging, edit tracking, failure queue, context correlation.",
-      "author": "Herman Geldenhuys",
+      "source": "./",
+      "version": "0.7.0",
+      "description": "Production-ready hook examples + comprehensive SDK skill. Event logging, edit tracking, failure queue, context correlation, analytics, and more.",
+      "author": {
+        "name": "Herman Geldenhuys",
+        "email": "hgeldenhuys@gmail.com"
+      },
       "keywords": [
         "hooks",
         "examples",
         "event-logging",
         "observability",
-        "skill"
+        "skill",
+        "analytics",
+        "monitoring"
       ]
     }
   ]

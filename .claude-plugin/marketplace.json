@@ -10,13 +10,24 @@
     {
       "name": "analytics-tracker",
       "source": "./.claude-plugin/plugins/analytics-tracker",
-      "version": "0.7.0",
+      "version": "0.7.1",
       "description": "Automatic session cost tracking, token usage monitoring, and performance metrics. Track every dollar and token spent across all sessions.",
       "author": {
         "name": "Herman Geldenhuys",
         "email": "hgeldenhuys@gmail.com"
       },
       "keywords": ["analytics", "cost-tracking", "tokens", "metrics", "performance"]
+    },
+    {
+      "name": "conversation-logger",
+      "source": "./.claude-plugin/plugins/conversation-logger",
+      "version": "0.7.1",
+      "description": "Unified conversation logging across all sessions with color-coded output. Perfect for multi-agent development and debugging.",
+      "author": {
+        "name": "Herman Geldenhuys",
+        "email": "hgeldenhuys@gmail.com"
+      },
+      "keywords": ["conversation", "logging", "multi-agent", "debugging", "color-coded"]
     },
     {
       "name": "anomaly-monitor",

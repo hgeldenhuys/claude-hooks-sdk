@@ -8,9 +8,9 @@
 
 ## Features
 
+### Core Features
 - ✅ **Full Type Safety** - Complete TypeScript types for all 10 Claude Code hook events
 - ✅ **Fluent API** - Intuitive `manager.onPreToolUse(...)` handler registration
-- ✅ **Zero Dependencies** - No runtime dependencies, works anywhere
 - ✅ **Non-Blocking by Default** - Hook failures don't block Claude Code (opt-in blocking available)
 - ✅ **Built-in Event Logging** - Enable with one flag, organized by client ID
 - ✅ **Edit Tracking** - Automatically track files modified during Claude's response
@@ -19,7 +19,20 @@
 - ✅ **Transcript Access** - Built-in utilities for parsing and searching conversation history
 - ✅ **Plugin System** - Extensible architecture for custom integrations
 - ✅ **Async/Await Support** - Full async handler support for API calls, database queries, etc.
-- 🆕 **Transform Utilities** - Conversation logging, file tracking, todo monitoring, AI summaries
+
+### Transform Utilities (v0.6.0)
+- 🔄 **Conversation Logging** - Track user prompts and assistant responses between Stop events
+- 📄 **File Change Tracking** - Monitor Write/Edit/MultiEdit operations
+- ✅ **Todo Progress Tracking** - Extract and monitor TodoWrite events with completion percentages
+- 🤖 **AI Summarization** - Auto-summarize Stop events using Claude Haiku API
+
+### Advanced Features (v0.7.0)
+- 💾 **Persistent State** - Durable SQLite/file/memory storage for state that survives restarts
+- 📊 **Session Analytics** - Automatic cost tracking, performance metrics, token usage analysis
+- 🎬 **Event Recording & Replay** - Record sessions to JSONL and replay for testing
+- 📡 **Real-time Streaming** - SSE-based event streaming to dashboards and monitoring tools
+- 🔌 **Middleware System** - Composable middleware with rate limiting, deduplication, PII redaction
+- 🚨 **Anomaly Detection** - Detect unusual patterns (error spikes, token anomalies, response time issues)
 
 ## Table of Contents
 

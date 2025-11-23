@@ -1171,6 +1171,56 @@ bun server.ts
 
 See [examples/custom-backend/README.md](./examples/custom-backend/README.md) for complete documentation, testing instructions, and production deployment guide.
 
+### Transaction Logger - Flight Recorder for Conversations
+
+Comprehensive transaction tracker that captures the full context of each conversation turn:
+
+👉 **[examples/transaction-logger/](./examples/transaction-logger/)** - Complete transaction tracking system
+
+**What It Tracks:**
+- 💬 User prompts (all messages in the turn)
+- 🛠️ All tool calls with inputs
+- 📝 File changes (Write/Edit/MultiEdit with line counts)
+- ✅ Todos created/updated
+- 🤖 Assistant responses
+- 📊 Transaction metadata (IDs, timestamps, duration, line numbers)
+
+**Features:**
+- Uses `transaction_id` to group all events in a turn
+- Writes to `.claude/logs/transactions.jsonl`
+- Beautiful TUI viewer with color-coding
+- Filter by session, show latest N, watch mode
+- Overall statistics and analytics
+- Perfect for debugging, auditing, and understanding workflows
+
+**Quick Start:**
+```typescript
+// Configure in .claude/settings.json (UserPromptSubmit, PostToolUse, Stop hooks)
+// Then view transactions:
+bun examples/transaction-logger/viewer.ts --latest 10
+bun examples/transaction-logger/viewer.ts --watch
+```
+
+**Example Transaction:**
+```json
+{
+  "transaction_id": "a3f2c1d8-...",
+  "session_name": "brave-elephant",
+  "user_prompts": ["Help me implement auth"],
+  "files_changed": [{"path": "auth.ts", "operation": "write", "lines_changed": 120}],
+  "todos_created": [{"content": "Create service", "status": "completed"}],
+  "assistant_response": "I've created the authentication service...",
+  "transcript_line_number": 42,
+  "summary": {
+    "total_files_changed": 3,
+    "total_todos_created": 5,
+    "unique_tools": ["Write", "Edit", "TodoWrite"]
+  }
+}
+```
+
+See [examples/transaction-logger/README.md](./examples/transaction-logger/README.md) for complete documentation, analytics examples, and integration ideas.
+
 ## Type Definitions
 
 All hook events are fully typed:

@@ -11,34 +11,66 @@
  * - Tool usage statistics
  * - Daily/weekly/monthly cost reports
  * - Persistent storage across restarts
+ * - JSONL log output for tailing
  *
  * Configuration:
  * Edit .claude-plugin/config.json or set environment variables:
  * - ANALYTICS_TRACKER_ENABLED=true
  * - ANALYTICS_TRACKER_STORAGE_PATH=.claude/analytics.db
+ * - ANALYTICS_TRACKER_LOG_PATH=.claude/logs/analytics-tracker.jsonl
+ *
+ * Usage:
+ * tail -f .claude/logs/analytics-tracker.jsonl
  */
 
 import { HookManager, SessionAnalytics } from 'claude-hooks-sdk';
-import { loadConfig, getConfigValue } from '../../shared/config-loader';
+import { loadConfig, getConfigValue } from '../../../.claude-plugin/shared/config-loader';
+import * as fs from 'fs';
+import * as path from 'path';
 
 const PLUGIN_NAME = 'analytics-tracker';
 
+// Debug: log startup
+const debugLog = (msg: string) => {
+  fs.appendFileSync('.claude/logs/analytics-debug.log', `${new Date().toISOString()} ${msg}\n`);
+};
+
+debugLog('analytics-tracker: Hook starting...');
+
 // Load configuration
 const config = loadConfig(PLUGIN_NAME);
+debugLog(`analytics-tracker: Config loaded, enabled=${config.enabled}`);
 
 if (!config.enabled) {
-  console.log(`[${PLUGIN_NAME}] Plugin disabled`);
+  debugLog('analytics-tracker: Disabled, exiting');
   process.exit(0);
 }
 
 // Get config values
 const storagePath = getConfigValue(config, 'storagePath', '.claude/analytics.db');
+const logPath = getConfigValue(config, 'logPath', '.claude/logs/analytics-tracker.jsonl');
 const pricing = getConfigValue(config, 'pricing', {
   'claude-sonnet-4': { input: 3.0, output: 15.0 },
   'claude-opus-4': { input: 15.0, output: 75.0 },
   'claude-haiku-4': { input: 0.8, output: 4.0 },
 });
-const reportingInterval = getConfigValue(config, 'reportingInterval', 'daily');
+const reportingInterval = getConfigValue(config, 'reportingInterval', 'session');
+
+// Ensure log directory exists
+const logDir = path.dirname(logPath);
+if (!fs.existsSync(logDir)) {
+  fs.mkdirSync(logDir, { recursive: true });
+}
+
+// Helper to write JSONL log entries
+function log(event: string, data: any) {
+  const entry = {
+    timestamp: new Date().toISOString(),
+    event,
+    ...data,
+  };
+  fs.appendFileSync(logPath, JSON.stringify(entry) + '\n');
+}
 
 // Initialize SessionAnalytics
 const analytics = new SessionAnalytics({
@@ -49,13 +81,17 @@ const analytics = new SessionAnalytics({
 // Create HookManager
 const manager = new HookManager({
   clientId: PLUGIN_NAME,
-  logEvents: false, // We're doing custom analytics
+  logEvents: false,
 });
 
 // Track session start
 manager.onSessionStart(async (input) => {
+  debugLog(`analytics-tracker: SessionStart event received: ${input.session_id}`);
   analytics.recordSessionStart(input.session_id);
-  console.log(`[${PLUGIN_NAME}] 📊 Session started: ${input.session_id}`);
+  log('session_start', {
+    session_id: input.session_id,
+  });
+  debugLog('analytics-tracker: SessionStart logged');
 });
 
 // Track tool usage
@@ -65,12 +101,43 @@ manager.onPostToolUse(async (input) => {
 
 // Track Stop events (token usage)
 manager.onStop(async (input) => {
-  analytics.recordStop(input);
+  // HookManager automatically enriches input with usage/model from transcript
+  // Normalize model name for pricing lookup (claude-sonnet-4-5-20250929 -> claude-sonnet-4)
+  const enrichedInput = input as any;
+  if (enrichedInput.model) {
+    const originalModel = enrichedInput.model;
+    // Remove date suffix (20250929, 20241115, etc)
+    enrichedInput.model = enrichedInput.model.replace(/-20\d{6}$/, '');
+    // Remove minor version if present (claude-sonnet-4-5 -> claude-sonnet-4)
+    enrichedInput.model = enrichedInput.model.replace(/-\d+$/, '');
+    debugLog(`analytics-tracker: Normalized model ${originalModel} -> ${enrichedInput.model}`);
+  }
+
+  if (enrichedInput.usage) {
+    const totalTokens = enrichedInput.usage.input_tokens + enrichedInput.usage.output_tokens;
+    debugLog(`analytics-tracker: Stop event - tokens=${totalTokens}, model=${enrichedInput.model}`);
+  }
+
+  analytics.recordStop(enrichedInput);
 
   // Get current session metrics
   const metrics = await analytics.getMetrics(input.session_id);
+  debugLog(`analytics-tracker: Metrics - turns=${metrics?.turns}, tokens=${metrics?.tokens.total}, cost=${metrics?.cost.total}`);
   if (metrics) {
-    console.log(`[${PLUGIN_NAME}] 💰 Turn ${metrics.turns}: $${metrics.cost.total.toFixed(4)} | ${metrics.tokens.total.toLocaleString()} tokens`);
+    log('turn_complete', {
+      session_id: input.session_id,
+      turn: metrics.turns,
+      cost: {
+        total: metrics.cost.total,
+        input: metrics.cost.input,
+        output: metrics.cost.output,
+      },
+      tokens: {
+        total: metrics.tokens.total,
+        input: metrics.tokens.input,
+        output: metrics.tokens.output,
+      },
+    });
   }
 });
 
@@ -81,36 +148,49 @@ manager.onSessionEnd(async (input) => {
   // Get final metrics
   const metrics = await analytics.getMetrics(input.session_id);
   if (metrics) {
-    console.log(`\n[${PLUGIN_NAME}] 📊 Session Summary`);
-    console.log(`  Duration: ${metrics.duration.elapsed}`);
-    console.log(`  Turns: ${metrics.turns}`);
-    console.log(`  Tokens: ${metrics.tokens.total.toLocaleString()} (${metrics.tokens.input.toLocaleString()} in / ${metrics.tokens.output.toLocaleString()} out)`);
-    console.log(`  Cost: $${metrics.cost.total.toFixed(4)} ($${metrics.cost.input.toFixed(4)} in / $${metrics.cost.output.toFixed(4)} out)`);
-    console.log(`  Tools: ${Object.keys(metrics.tools).length} different tools used`);
-    console.log(`  Errors: ${metrics.errors} (${(metrics.errorRate * 100).toFixed(1)}% error rate)`);
-
-    // Show top tools
     const topTools = Object.entries(metrics.tools)
       .sort(([, a], [, b]) => b - a)
-      .slice(0, 5);
-    if (topTools.length > 0) {
-      console.log(`  Top tools: ${topTools.map(([tool, count]) => `${tool}(${count})`).join(', ')}`);
-    }
+      .slice(0, 5)
+      .map(([tool, count]) => ({ tool, count }));
+
+    log('session_end', {
+      session_id: input.session_id,
+      duration: metrics.duration.elapsed,
+      turns: metrics.turns,
+      tokens: {
+        total: metrics.tokens.total,
+        input: metrics.tokens.input,
+        output: metrics.tokens.output,
+      },
+      cost: {
+        total: metrics.cost.total,
+        input: metrics.cost.input,
+        output: metrics.cost.output,
+      },
+      tools: {
+        unique: Object.keys(metrics.tools).length,
+        top: topTools,
+      },
+      errors: metrics.errors,
+      errorRate: metrics.errorRate,
+    });
   }
 
   // Show aggregated metrics if requested
   if (reportingInterval === 'session') {
     const agg = await analytics.getAggregatedMetrics();
     if (agg.totalSessions > 1) {
-      console.log(`\n[${PLUGIN_NAME}] 📈 All-Time Statistics`);
-      console.log(`  Total sessions: ${agg.totalSessions}`);
-      console.log(`  Total cost: $${agg.totalCost.toFixed(2)}`);
-      console.log(`  Average cost: $${agg.averageCost.toFixed(4)} per session`);
-      console.log(`  Total tokens: ${agg.totalTokens.toLocaleString()}`);
-      console.log(`  Average turns: ${agg.averageTurns.toFixed(1)} per session`);
+      log('all_time_stats', {
+        totalSessions: agg.totalSessions,
+        totalCost: agg.totalCost,
+        averageCost: agg.averageCost,
+        totalTokens: agg.totalTokens,
+        averageTurns: agg.averageTurns,
+      });
     }
   }
 });
 
 // Run the hook
+debugLog('analytics-tracker: Calling manager.run()');
 manager.run();

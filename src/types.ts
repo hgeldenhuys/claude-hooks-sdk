@@ -164,14 +164,29 @@ export interface UserPromptSubmitOutput {
 // Stop and SubagentStop Types
 // ============================================================================
 
+export interface TokenUsage {
+  input_tokens: number;
+  output_tokens: number;
+  cache_creation_input_tokens?: number;
+  cache_read_input_tokens?: number;
+}
+
 export interface StopInput extends EnrichedHookInput {
   hook_event_name: 'Stop';
   stop_hook_active: boolean;
+  /** Token usage extracted from conversation (enriched by HookManager) */
+  usage?: TokenUsage;
+  /** Model name extracted from conversation (enriched by HookManager) */
+  model?: string;
 }
 
 export interface SubagentStopInput extends EnrichedHookInput {
   hook_event_name: 'SubagentStop';
   stop_hook_active: boolean;
+  /** Token usage extracted from conversation (enriched by HookManager) */
+  usage?: TokenUsage;
+  /** Model name extracted from conversation (enriched by HookManager) */
+  model?: string;
 }
 
 export interface StopOutput {

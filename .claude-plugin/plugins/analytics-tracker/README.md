@@ -12,23 +12,93 @@ Automatically track session costs, token usage, and performance metrics for Clau
 
 ## Installation
 
-```bash
-# Install from marketplace
-/plugin install analytics-tracker
+### Step 1: Install the Plugin
 
-# Or copy hook manually
-chmod +x .claude-plugin/plugins/analytics-tracker/hook.ts
+```bash
+/plugin install analytics-tracker
 ```
+
+This copies files to `.claude/hooks/analytics-tracker/` and `.claude-plugin/`.
+
+### Step 2: Register Hooks (REQUIRED)
+
+**CRITICAL:** The plugin doesn't auto-register! You must manually add it to `.claude/settings.json`.
+
+Add these hook registrations to your `.claude/settings.json`:
+
+```json
+{
+  "hooks": {
+    "SessionStart": [
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bun \"$CLAUDE_PROJECT_DIR\"/.claude/hooks/analytics-tracker/hook.ts"
+          }
+        ]
+      }
+    ],
+    "SessionEnd": [
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bun \"$CLAUDE_PROJECT_DIR\"/.claude/hooks/analytics-tracker/hook.ts"
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bun \"$CLAUDE_PROJECT_DIR\"/.claude/hooks/analytics-tracker/hook.ts"
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bun \"$CLAUDE_PROJECT_DIR\"/.claude/hooks/analytics-tracker/hook.ts"
+          }
+        ]
+      }
+    ]
+  }
+}
+```
+
+**Note:** If you already have hooks registered, add these to your existing arrays (don't replace them).
+
+### Step 3: Install Dependencies
+
+```bash
+bun add chalk  # For the viewer script
+```
+
+### Step 4: Restart Claude Code
+
+Hooks only load at startup. Restart to activate analytics-tracker.
 
 ## Configuration
 
-Edit `.claude-plugin/config.json`:
+Create or edit `.claude-plugin/config.json`:
 
 ```json
 {
   "analytics-tracker": {
     "enabled": true,
     "storagePath": ".claude/analytics.db",
+    "logPath": ".claude/logs/analytics-tracker.jsonl",
     "pricing": {
       "claude-sonnet-4": {
         "input": 3.0,
@@ -59,22 +129,21 @@ export ANALYTICS_TRACKER_STORAGE_PATH=.claude/analytics.db
 
 ## Usage
 
-Once installed, the plugin automatically tracks all Claude Code sessions:
+### View Real-Time Analytics
+
+In a separate terminal, tail the log with the viewer:
 
 ```bash
-# Start a Claude Code session - analytics are tracked automatically
-claude
-
-# At the end of the session, you'll see:
-# [analytics-tracker] 📊 Session Summary
-#   Duration: 5m 32s
-#   Turns: 12
-#   Tokens: 45,320 (25,180 in / 20,140 out)
-#   Cost: $0.3521 ($0.0755 in / $0.2766 out)
-#   Tools: 8 different tools used
-#   Errors: 2 (4.2% error rate)
-#   Top tools: Read(15), Write(8), Bash(5), Edit(3), Grep(2)
+tail -f .claude/logs/analytics-tracker.jsonl | bun .claude/hooks/analytics-tracker/scripts/viewer.ts
 ```
+
+Or view raw JSONL:
+
+```bash
+tail -f .claude/logs/analytics-tracker.jsonl
+```
+
+The plugin writes to `.claude/logs/analytics-tracker.jsonl` - all output is file-based for easy tailing and processing.
 
 ## Sample Output
 
@@ -152,13 +221,35 @@ Analytics are stored in SQLite at the configured `storagePath` (default: `.claud
 sqlite3 .claude/analytics.db "SELECT * FROM state WHERE key LIKE 'session:%'"
 ```
 
+## JSONL Log Format
+
+The plugin writes structured JSONL events:
+
+**session_start**
+```json
+{"timestamp":"2025-11-23T05:01:37.688Z","event":"session_start","session_id":"482abe2a..."}
+```
+
+**turn_complete**
+```json
+{"timestamp":"2025-11-23T05:02:15.123Z","event":"turn_complete","session_id":"482abe2a...","turn":1,"cost":{"total":0.0234,"input":0.0015,"output":0.0219},"tokens":{"total":1560,"input":500,"output":1060}}
+```
+
+**session_end**
+```json
+{"timestamp":"2025-11-23T05:15:30.456Z","event":"session_end","session_id":"482abe2a...","duration":"13m 53s","turns":12,"tokens":{...},"cost":{...},"tools":{...}}
+```
+
 ## Troubleshooting
 
-**Q: No analytics showing?**
-A: Check that `enabled: true` in config.json and the hook has execute permissions.
+**Q: No logs appearing after install?**
+1. Check hook registration in `.claude/settings.json`
+2. Restart Claude Code (hooks only load at startup)
+3. Check debug log: `cat .claude/logs/analytics-debug.log`
+4. Verify hook permissions: `chmod +x .claude/hooks/analytics-tracker/hook.ts`
 
 **Q: Wrong costs?**
-A: Update pricing in config.json to match current Anthropic rates.
+A: Update pricing in config.json to match current Anthropic rates (https://anthropic.com/pricing).
 
-**Q: Storage errors?**
-A: Ensure `.claude/` directory exists and has write permissions.
+**Q: Database locked errors?**
+A: Only one hook instance should run per session. Check for duplicate registrations in settings.json.

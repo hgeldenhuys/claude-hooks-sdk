@@ -346,6 +346,13 @@ export class HookManager {
       if (fullTranscript.length > 0) {
         const lastLine = fullTranscript[fullTranscript.length - 1];
         conversation = lastLine.content;
+
+        // Enrich Stop events with usage/model data from conversation
+        if ((input.hook_event_name === 'Stop' || input.hook_event_name === 'SubagentStop') && conversation?.message) {
+          const enriched = input as any;
+          enriched.usage = conversation.message.usage;
+          enriched.model = conversation.message.model;
+        }
       }
     } catch (error) {
       // Transcript not available - this is okay

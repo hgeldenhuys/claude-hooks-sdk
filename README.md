@@ -108,9 +108,10 @@ manager.onPreToolUse(async (input) => {
   return success();
 });
 
-// Log session starts
+// Log session starts (with auto-generated session name)
 manager.onSessionStart(async (input) => {
-  console.log(`Session started: ${input.session_id}`);
+  console.log(`Session started: ${input.session_name} (${input.session_id})`);
+  // Example output: "Session started: brave-elephant (af13b3cd-5185-...)"
   return success();
 });
 
@@ -561,6 +562,119 @@ manager.onPreToolUse(async (input: any) => {
 - **Prompt Tracking**: Know which prompt triggered which tool uses
 - **Git Context**: Track which branch/commit events occurred on
 - **Parent-Child Tracking**: Subagent events include `parentSessionId` and `agentId`
+
+---
+
+## Session Naming
+
+**Automatically assign user-friendly names to Claude Code sessions!**
+
+The SDK now generates memorable names for all sessions (e.g., "brave-elephant", "clever-dolphin") instead of UUIDs. Session names are:
+- **Automatic** - Generated on SessionStart, no configuration needed
+- **Persistent** - Saved to `.claude/sessions.json` for resume support
+- **Bidirectional** - Lookup session ID by name or name by ID
+- **Manual** - Rename sessions via config or CLI scripts
+
+### Usage
+
+```typescript
+import { HookManager, getSessionName, getSessionId } from 'claude-hooks-sdk';
+
+const manager = new HookManager();
+
+manager.onSessionStart(async (input) => {
+  // session_name is auto-populated by the SDK
+  console.log(`Session: ${input.session_name}`);
+  // Output: "Session: brave-elephant"
+
+  return { exitCode: 0 };
+});
+```
+
+When Claude Code starts, you'll see:
+```
+📝 Session: brave-elephant
+
+Ready. How can I help?
+```
+
+### Resume by Name
+
+```bash
+# Find session ID by name
+bun .claude/scripts/session-lookup.ts brave-elephant
+# Output: af13b3cd-5185-42df-aa85-3bf6e52e1810
+
+# Resume using that ID
+claude --resume $(bun .claude/scripts/session-lookup.ts brave-elephant)
+```
+
+### Rename Sessions
+
+```bash
+# Rename by current name
+bun .claude/scripts/session-rename.ts brave-elephant "refactor-sse"
+
+# Rename by session ID
+bun .claude/scripts/session-rename.ts af13b3cd "bugfix-viewer"
+```
+
+### Manual Names via Config
+
+Set custom names in `.claude-plugin/config.json`:
+
+```json
+{
+  "session-namer": {
+    "manualNames": {
+      "af13b3cd-5185-42df-aa85-3bf6e52e1810": "refactor-realtime-sse"
+    }
+  }
+}
+```
+
+### Conversation Logger Integration
+
+The `conversation-logger` plugin shows session names in the viewer:
+
+```
+╔══════════════════════════════════════════════════════╗
+║ 🤖 Agent Started                                     ║
+║   Session: brave-elephant (af13b3cd)                 ║
+║   Source: resume                                     ║
+╚══════════════════════════════════════════════════════╝
+```
+
+### API
+
+```typescript
+import {
+  getSessionName,
+  getSessionId,
+  renameSession,
+  listSessions,
+} from 'claude-hooks-sdk';
+
+// Lookup name by ID
+const name = getSessionName('af13b3cd-5185-42df-aa85-3bf6e52e1810');
+// Returns: "brave-elephant"
+
+// Lookup ID by name
+const id = getSessionId('brave-elephant');
+// Returns: "af13b3cd-5185-42df-aa85-3bf6e52e1810"
+
+// Rename a session
+renameSession('af13b3cd-5185-42df-aa85-3bf6e52e1810', 'new-name');
+
+// List all sessions
+const sessions = listSessions();
+// Returns: [{ sessionId: '...', info: { name: '...', created: '...', ... } }]
+```
+
+**Name format:** `adjective-animal` (e.g., "brave-elephant", "clever-dolphin")
+- Uses `unique-names-generator` library
+- Collision handling with `-2`, `-3` suffixes
+- Stored in `.claude/sessions.json`
 
 ---
 

@@ -4,12 +4,14 @@
  *
  * Shows all sessions in one stream with color-coded borders
  * Each unique session gets assigned a color (cycling through 10 colors)
+ * Displays user-friendly session names when available
  *
  * Usage:
  *   tail -f .claude/logs/conversation.jsonl | bun .claude/scripts/conversation-viewer.ts
  */
 
 import chalk from 'chalk';
+import { getSessionName } from 'claude-hooks-sdk';
 
 // Terminal colors for sessions (max 10)
 const SESSION_COLORS = [
@@ -50,6 +52,7 @@ function formatBorder(sessionId: string, text: string) {
 function formatSessionDivider(sessionId: string, source: string) {
   const color = getSessionColor(sessionId);
   const shortId = sessionId.substring(0, 8);
+  const sessionName = getSessionName(sessionId);
 
   console.log('');
   console.log(color('╔' + '═'.repeat(78) + '╗'));
@@ -57,7 +60,10 @@ function formatSessionDivider(sessionId: string, source: string) {
   const line1 = ` 🤖 Agent Started`;
   console.log(color('║') + chalk.bold(line1) + ' '.repeat(78 - line1.length) + color('║'));
 
-  const line2 = `   Session: ${shortId}`;
+  // Show: "Session: brave-elephant (af13b3cd)" or just "Session: af13b3cd" if no name
+  const line2 = sessionName
+    ? `   Session: ${sessionName} (${shortId})`
+    : `   Session: ${shortId}`;
   console.log(color('║') + line2 + ' '.repeat(78 - line2.length) + color('║'));
 
   const line3 = `   Source: ${source}`;

@@ -228,6 +228,8 @@ export type SessionStartSource = 'startup' | 'resume' | 'clear' | 'compact';
 export interface SessionStartInput extends BaseHookInput {
   hook_event_name: 'SessionStart';
   source: SessionStartSource;
+  /** Session name (enriched by HookManager) */
+  session_name?: string;
 }
 
 export interface SessionStartOutput {

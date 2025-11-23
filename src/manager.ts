@@ -7,6 +7,7 @@ import { createReadStream, existsSync, mkdirSync, appendFileSync, readFileSync, 
 import { createInterface } from 'readline';
 import { join } from 'path';
 import { ContextTracker, type EventContext } from './context-tracker';
+import { SessionNamer, initSessionNamer } from './session-namer';
 import type {
   AnyHookInput,
   AnyHookOutput,
@@ -155,6 +156,7 @@ export class HookManager {
   private handlers: Map<HookEventName, HookHandler<any, any>[]> = new Map();
   private plugins: HookPlugin[] = [];
   private options: HookManagerOptions;
+  private sessionNamer: SessionNamer;
   private logFilePath?: string;
   private errorQueuePath?: string;
   private maxRetries: number;
@@ -198,6 +200,9 @@ export class HookManager {
     if (shouldEnableContext) {
       this.contextTracker = new ContextTracker(clientId, logDir);
     }
+
+    // Initialize session namer (always enabled)
+    this.sessionNamer = new SessionNamer();
   }
 
   /**
@@ -357,6 +362,25 @@ export class HookManager {
     } catch (error) {
       // Transcript not available - this is okay
       conversation = null;
+    }
+
+    // Enrich SessionStart events with session name
+    if (input.hook_event_name === 'SessionStart') {
+      const sessionStartInput = input as SessionStartInput;
+      const sessionName = this.sessionNamer.getOrCreateName(
+        sessionStartInput.session_id,
+        sessionStartInput.source
+      );
+      (sessionStartInput as any).session_name = sessionName;
+
+      // Return system message to inform Claude of session name
+      // This is returned early so Claude sees the name immediately
+      finalResult = {
+        exitCode: 0,
+        output: {
+          systemMessage: `📝 Session: ${sessionName}`,
+        },
+      };
     }
 
     // Call onBeforeExecute plugins

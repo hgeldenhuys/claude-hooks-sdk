@@ -192,3 +192,15 @@ export {
   type ToolSequenceRule,
   type TokenSpikeRule,
 } from './anomaly-detector';
+
+// Export session naming
+export {
+  SessionNamer,
+  initSessionNamer,
+  getSessionName,
+  getSessionId,
+  renameSession,
+  listSessions,
+  type SessionInfo,
+  type SessionsDatabase,
+} from './session-namer';

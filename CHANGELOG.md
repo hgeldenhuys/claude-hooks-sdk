@@ -2,6 +2,51 @@
 
 All notable changes to the claude-hooks-sdk will be documented in this file.
 
+## [0.7.2] - 2025-11-23
+
+### Added
+
+**🎯 Session Naming - User-Friendly Session Management**
+
+- **Automatic session naming** - SDK now auto-generates memorable names (e.g., "brave-elephant") for all sessions
+- **SessionStart enrichment** - All SessionStart events now include `session_name` field
+- **Persistent storage** - Session names saved to `.claude/sessions.json` for resume support
+- **Bidirectional lookup** - Convert between session names and UUIDs
+- **Manual naming** - Rename sessions via config or CLI scripts
+- **CLI tools** - New scripts for session lookup and renaming:
+  - `.claude/scripts/session-lookup.ts` - Find session ID by name or vice versa
+  - `.claude/scripts/session-rename.ts` - Manually rename sessions
+- **conversation-logger integration** - Viewer now shows session names alongside IDs
+- **systemMessage** - Claude is informed of session name on SessionStart
+
+**API additions:**
+- `SessionNamer` class for managing session names
+- `getSessionName(sessionId)` - Lookup name by ID
+- `getSessionId(name)` - Lookup ID by name
+- `renameSession(sessionId, newName)` - Rename a session
+- `listSessions()` - Get all sessions with metadata
+- `SessionInfo` type - Session metadata interface
+- `session_name?` field added to `SessionStartInput`
+
+**Name format:** `adjective-animal` (e.g., "brave-elephant", "clever-dolphin")
+- Uses `unique-names-generator` library
+- Collision handling with numeric suffixes (-2, -3, etc.)
+- Deterministic and memorable
+
+**Usage:**
+```typescript
+import { getSessionName, getSessionId } from 'claude-hooks-sdk';
+
+// Names are auto-generated on SessionStart
+manager.onSessionStart(async (input) => {
+  console.log(`Session: ${input.session_name}`); // "brave-elephant"
+});
+
+// Resume by name
+const sessionId = getSessionId("brave-elephant");
+// claude --resume <sessionId>
+```
+
 ## [0.4.1] - 2025-11-21
 
 ### Fixed

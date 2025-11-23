@@ -1,6 +1,6 @@
 {
   "name": "claude-hooks-sdk",
-  "version": "0.7.1",
+  "version": "0.7.2",
   "description": "Type-safe TypeScript SDK for building Claude Code hook extensions with edit tracking, context correlation, transform utilities, and non-blocking error handling",
   "author": "Herman Geldenhuys <hgeldenhuys@gmail.com>",
   "license": "MIT",
@@ -60,6 +60,7 @@
     "url": "https://github.com/hgeldenhuys/claude-hooks-sdk/issues"
   },
   "dependencies": {
-    "better-sqlite3": "^12.4.6"
+    "better-sqlite3": "^12.4.6",
+    "unique-names-generator": "^4.7.1"
   }
 }

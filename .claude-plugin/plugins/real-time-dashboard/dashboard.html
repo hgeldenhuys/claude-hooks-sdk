@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Claude Code - Real-Time Dashboard</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: #0f0f0f;
+      color: #e0e0e0;
+      padding: 20px;
+    }
+    .container { max-width: 1200px; margin: 0 auto; }
+    h1 {
+      font-size: 24px;
+      margin-bottom: 20px;
+      color: #fff;
+    }
+    .status {
+      padding: 10px 20px;
+      border-radius: 8px;
+      margin-bottom: 20px;
+      font-weight: 500;
+    }
+    .status.connected { background: #1a3d1a; color: #4ade80; }
+    .status.disconnected { background: #3d1a1a; color: #f87171; }
+    .events {
+      background: #1a1a1a;
+      border-radius: 8px;
+      padding: 20px;
+      height: 600px;
+      overflow-y: auto;
+    }
+    .event {
+      padding: 12px;
+      margin-bottom: 8px;
+      border-radius: 6px;
+      background: #2a2a2a;
+      border-left: 3px solid #444;
+      animation: slideIn 0.3s ease;
+    }
+    .event.user-prompt { border-left-color: #3b82f6; }
+    .event.tool-use { border-left-color: #8b5cf6; }
+    .event.stop { border-left-color: #10b981; }
+    .event-type {
+      font-weight: 600;
+      color: #fff;
+      margin-bottom: 4px;
+    }
+    .event-content {
+      font-size: 14px;
+      color: #a0a0a0;
+    }
+    .event-time {
+      font-size: 12px;
+      color: #666;
+      margin-top: 4px;
+    }
+    @keyframes slideIn {
+      from {
+        opacity: 0;
+        transform: translateY(-10px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>📡 Claude Code Real-Time Dashboard</h1>
+    <div id="status" class="status disconnected">⚠️ Connecting...</div>
+    <div class="events" id="events"></div>
+  </div>
+
+  <script>
+    const eventsContainer = document.getElementById('events');
+    const statusEl = document.getElementById('status');
+    let eventSource;
+
+    function connect() {
+      eventSource = new EventSource('http://localhost:3001/events');
+
+      eventSource.onopen = () => {
+        statusEl.className = 'status connected';
+        statusEl.textContent = '✅ Connected';
+      };
+
+      eventSource.onerror = () => {
+        statusEl.className = 'status disconnected';
+        statusEl.textContent = '⚠️ Disconnected - Retrying...';
+      };
+
+      eventSource.addEventListener('user-prompt', (e) => {
+        const data = JSON.parse(e.data);
+        addEvent('user-prompt', '💬 User Prompt', data.prompt || 'No content', data.timestamp);
+      });
+
+      eventSource.addEventListener('tool-use', (e) => {
+        const data = JSON.parse(e.data);
+        addEvent('tool-use', '🔧 Tool Use', data.tool, data.timestamp);
+      });
+
+      eventSource.addEventListener('stop', (e) => {
+        const data = JSON.parse(e.data);
+        addEvent('stop', '🛑 Stop', `${data.tokens?.toLocaleString() || 0} tokens`, data.timestamp);
+      });
+    }
+
+    function addEvent(type, title, content, timestamp) {
+      const eventEl = document.createElement('div');
+      eventEl.className = `event ${type}`;
+      eventEl.innerHTML = `
+        <div class="event-type">${title}</div>
+        <div class="event-content">${content}</div>
+        <div class="event-time">${new Date(timestamp).toLocaleTimeString()}</div>
+      `;
+      eventsContainer.insertBefore(eventEl, eventsContainer.firstChild);
+
+      // Keep only last 50 events
+      while (eventsContainer.children.length > 50) {
+        eventsContainer.removeChild(eventsContainer.lastChild);
+      }
+    }
+
+    connect();
+  </script>
+</body>
+</html>

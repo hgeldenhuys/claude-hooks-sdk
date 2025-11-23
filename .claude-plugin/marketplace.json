@@ -4,27 +4,74 @@
     "name": "Herman Geldenhuys",
     "email": "hgeldenhuys@gmail.com"
   },
-  "description": "Official marketplace for claude-hooks-sdk examples and templates",
+  "description": "Production-ready plugins for Claude Code hook extensions with analytics, monitoring, and debugging",
   "homepage": "https://github.com/hgeldenhuys/claude-hooks-sdk",
   "plugins": [
     {
-      "name": "claude-hooks-sdk-examples",
-      "source": "./",
+      "name": "analytics-tracker",
+      "source": "./.claude-plugin/plugins/analytics-tracker",
       "version": "0.7.0",
-      "description": "Production-ready hook examples + comprehensive SDK skill. Event logging, edit tracking, failure queue, context correlation, analytics, and more.",
+      "description": "Automatic session cost tracking, token usage monitoring, and performance metrics. Track every dollar and token spent across all sessions.",
       "author": {
         "name": "Herman Geldenhuys",
         "email": "hgeldenhuys@gmail.com"
       },
-      "keywords": [
-        "hooks",
-        "examples",
-        "event-logging",
-        "observability",
-        "skill",
-        "analytics",
-        "monitoring"
-      ]
+      "keywords": ["analytics", "cost-tracking", "tokens", "metrics", "performance"]
+    },
+    {
+      "name": "anomaly-monitor",
+      "source": "./.claude-plugin/plugins/anomaly-monitor",
+      "version": "0.7.0",
+      "description": "Real-time anomaly detection with Slack/webhook alerts. Detect error spikes, token anomalies, and response time issues automatically.",
+      "author": {
+        "name": "Herman Geldenhuys",
+        "email": "hgeldenhuys@gmail.com"
+      },
+      "keywords": ["anomaly-detection", "alerts", "monitoring", "slack", "webhooks"]
+    },
+    {
+      "name": "event-recorder",
+      "source": "./.claude-plugin/plugins/event-recorder",
+      "version": "0.7.0",
+      "description": "Record all hook events to JSONL files for debugging, testing, and replay. Perfect for creating test fixtures from real sessions.",
+      "author": {
+        "name": "Herman Geldenhuys",
+        "email": "hgeldenhuys@gmail.com"
+      },
+      "keywords": ["recording", "debugging", "testing", "replay", "jsonl"]
+    },
+    {
+      "name": "performance-monitor",
+      "source": "./.claude-plugin/plugins/performance-monitor",
+      "version": "0.7.0",
+      "description": "Track response times, SLA compliance, and tool performance. Monitor p95/p99 metrics and get alerted when SLAs are breached.",
+      "author": {
+        "name": "Herman Geldenhuys",
+        "email": "hgeldenhuys@gmail.com"
+      },
+      "keywords": ["performance", "sla", "response-time", "monitoring", "metrics"]
+    },
+    {
+      "name": "file-auditor",
+      "source": "./.claude-plugin/plugins/file-auditor",
+      "version": "0.7.0",
+      "description": "Comprehensive file change tracking with audit trails. Track every Write, Edit, and MultiEdit operation with timestamps and session IDs.",
+      "author": {
+        "name": "Herman Geldenhuys",
+        "email": "hgeldenhuys@gmail.com"
+      },
+      "keywords": ["file-tracking", "audit", "compliance", "git", "changes"]
+    },
+    {
+      "name": "real-time-dashboard",
+      "source": "./.claude-plugin/plugins/real-time-dashboard",
+      "version": "0.7.0",
+      "description": "Stream events to a live web dashboard via SSE. Monitor Claude Code sessions in real-time with a beautiful web interface.",
+      "author": {
+        "name": "Herman Geldenhuys",
+        "email": "hgeldenhuys@gmail.com"
+      },
+      "keywords": ["dashboard", "real-time", "sse", "streaming", "monitoring"]
     }
   ]
 }

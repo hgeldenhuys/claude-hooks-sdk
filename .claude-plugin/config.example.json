@@ -1,0 +1,58 @@
+{
+  "analytics-tracker": {
+    "enabled": true,
+    "storagePath": ".claude/analytics.db",
+    "pricing": {
+      "claude-sonnet-4": {
+        "input": 3.0,
+        "output": 15.0
+      },
+      "claude-opus-4": {
+        "input": 15.0,
+        "output": 75.0
+      },
+      "claude-haiku-4": {
+        "input": 0.8,
+        "output": 4.0
+      }
+    },
+    "reportingInterval": "daily"
+  },
+  "anomaly-monitor": {
+    "enabled": true,
+    "thresholds": {
+      "errorRate": 0.1,
+      "responseTime": 30000,
+      "tokenSpike": 3
+    },
+    "alerts": {
+      "webhook": "",
+      "email": ""
+    }
+  },
+  "event-recorder": {
+    "enabled": true,
+    "outputPath": ".claude/events.jsonl",
+    "autoSave": true,
+    "events": ["UserPromptSubmit", "PostToolUse", "Stop"]
+  },
+  "performance-monitor": {
+    "enabled": true,
+    "slaThresholds": {
+      "p95ResponseTime": 30000,
+      "errorRate": 0.05
+    },
+    "reportingInterval": "hourly"
+  },
+  "file-auditor": {
+    "enabled": true,
+    "auditLogPath": ".claude/file-audit.log",
+    "gitIntegration": true
+  },
+  "real-time-dashboard": {
+    "enabled": true,
+    "port": 3001,
+    "path": "/events",
+    "cors": true
+  }
+}

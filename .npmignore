@@ -2,6 +2,10 @@
 
 # Test/example logs
 sample-extension/logs/
+**/*.jsonl
+**/*.log
+**/logs/
+sessions.json
 
 # Build artifacts
 *.tsbuildinfo

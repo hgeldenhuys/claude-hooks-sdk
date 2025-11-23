@@ -1,6 +1,7 @@
 node_modules/
 dist/
 *.log
+*.jsonl
 .DS_Store
 .env
 .env.local
@@ -8,3 +9,7 @@ dist/
 coverage/
 .nyc_output/
 test-hook.ts
+
+# Exclude generated logs and session data
+**/logs/
+sessions.json

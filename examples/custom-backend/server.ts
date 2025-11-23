@@ -312,8 +312,22 @@ function generateHtmlPage(): string {
     }
   </style>
   <script>
-    // Auto-refresh every 2 seconds
-    setTimeout(() => location.reload(), 2000);
+    // Smart polling - only reload if event count changes
+    let lastEventCount = ${events.length};
+
+    setInterval(async () => {
+      try {
+        const response = await fetch('/health');
+        const data = await response.json();
+
+        if (data.events_count !== lastEventCount) {
+          lastEventCount = data.events_count;
+          location.reload();
+        }
+      } catch (error) {
+        console.error('Failed to check for updates:', error);
+      }
+    }, 2000);
   </script>
 </head>
 <body>
@@ -353,28 +367,42 @@ function generateEventCard(event: HookEvent): string {
   const sessionName = event.session_name || 'unnamed';
   const sessionId = event.session_id.substring(0, 8);
 
-  // Extract key details from context
+  // Extract key details from event (check both top-level and context)
   const contextDetails: string[] = [];
-  if (event.context) {
-    const ctx = event.context;
-    if (ctx.user_message) {
-      contextDetails.push(`<div class="detail-row">
-        <span class="detail-label">Message:</span>
-        <span class="detail-value">${escapeHtml(String(ctx.user_message).substring(0, 200))}${String(ctx.user_message).length > 200 ? '...' : ''}</span>
-      </div>`);
-    }
-    if (ctx.tool_name) {
-      contextDetails.push(`<div class="detail-row">
-        <span class="detail-label">Tool:</span>
-        <span class="detail-value">${escapeHtml(String(ctx.tool_name))}</span>
-      </div>`);
-    }
-    if (ctx.model) {
-      contextDetails.push(`<div class="detail-row">
-        <span class="detail-label">Model:</span>
-        <span class="detail-value">${escapeHtml(String(ctx.model))}</span>
-      </div>`);
-    }
+
+  // User message (could be in multiple places)
+  const userMessage = (event as any).prompt_text || (event as any).user_prompt || event.context?.user_message;
+  if (userMessage) {
+    contextDetails.push(`<div class="detail-row">
+      <span class="detail-label">Message:</span>
+      <span class="detail-value">${escapeHtml(String(userMessage).substring(0, 200))}${String(userMessage).length > 200 ? '...' : ''}</span>
+    </div>`);
+  }
+
+  // Tool name (could be top-level or in context)
+  const toolName = (event as any).tool_name || event.context?.tool_name;
+  if (toolName) {
+    contextDetails.push(`<div class="detail-row">
+      <span class="detail-label">Tool:</span>
+      <span class="detail-value">${escapeHtml(String(toolName))}</span>
+    </div>`);
+  }
+
+  // Model
+  const model = (event as any).model || event.context?.model;
+  if (model) {
+    contextDetails.push(`<div class="detail-row">
+      <span class="detail-label">Model:</span>
+      <span class="detail-value">${escapeHtml(String(model))}</span>
+    </div>`);
+  }
+
+  // CWD (working directory)
+  if ((event as any).cwd) {
+    contextDetails.push(`<div class="detail-row">
+      <span class="detail-label">Directory:</span>
+      <span class="detail-value">${escapeHtml(String((event as any).cwd))}</span>
+    </div>`);
   }
 
   return `

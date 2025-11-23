@@ -361,22 +361,26 @@ function generateEmptyState(): string {
 }
 
 function generateEventCard(event: HookEvent): string {
-  const eventType = event.hook_event_name || 'unknown';
+  // Handle both flat and nested structures (event.hook.*)
+  const hookData = (event as any).hook || event;
+
+  const eventType = event.hook_event_name || hookData.hook_event_name || 'unknown';
   const badgeClass = `badge-${eventType.toLowerCase()}`;
 
   // Handle missing or invalid timestamps
-  const timestamp = event.timestamp
-    ? new Date(event.timestamp).toLocaleString()
+  const eventTimestamp = event.timestamp || hookData.timestamp || (event as any)._enriched_at;
+  const timestamp = eventTimestamp
+    ? new Date(eventTimestamp).toLocaleString()
     : 'No timestamp';
 
   const sessionName = event.session_name || 'unnamed';
-  const sessionId = event.session_id.substring(0, 8);
+  const sessionId = (event.session_id || hookData.session_id || 'unknown').substring(0, 8);
 
-  // Extract key details from event (check both top-level and context)
+  // Extract key details from event (check both top-level, nested, and context)
   const contextDetails: string[] = [];
 
   // User message (could be in multiple places)
-  const userMessage = (event as any).prompt_text || (event as any).user_prompt || event.context?.user_message;
+  const userMessage = (event as any).prompt_text || hookData.prompt_text || (event as any).user_prompt || event.context?.user_message;
   if (userMessage) {
     contextDetails.push(`<div class="detail-row">
       <span class="detail-label">Message:</span>
@@ -384,8 +388,8 @@ function generateEventCard(event: HookEvent): string {
     </div>`);
   }
 
-  // Tool name (could be top-level or in context)
-  const toolName = (event as any).tool_name || event.context?.tool_name;
+  // Tool name (could be top-level, nested, or in context)
+  const toolName = (event as any).tool_name || hookData.tool_name || event.context?.tool_name;
   if (toolName) {
     contextDetails.push(`<div class="detail-row">
       <span class="detail-label">Tool:</span>
@@ -394,7 +398,7 @@ function generateEventCard(event: HookEvent): string {
   }
 
   // Model
-  const model = (event as any).model || event.context?.model;
+  const model = (event as any).model || hookData.model || event.context?.model;
   if (model) {
     contextDetails.push(`<div class="detail-row">
       <span class="detail-label">Model:</span>
@@ -403,10 +407,11 @@ function generateEventCard(event: HookEvent): string {
   }
 
   // CWD (working directory)
-  if ((event as any).cwd) {
+  const cwd = (event as any).cwd || hookData.cwd;
+  if (cwd) {
     contextDetails.push(`<div class="detail-row">
       <span class="detail-label">Directory:</span>
-      <span class="detail-value">${escapeHtml(String((event as any).cwd))}</span>
+      <span class="detail-value">${escapeHtml(String(cwd))}</span>
     </div>`);
   }
 

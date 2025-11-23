@@ -58,22 +58,25 @@ async function main() {
   try {
     // Read input from stdin (Claude Code sends hook data as JSON)
     const input = await readStdin();
-    const hookEvent: HookInput = JSON.parse(input);
+    const hookEvent: any = JSON.parse(input); // Keep everything!
 
-    // Enrich event with session name and timestamp
+    // Extract session_id from wherever it might be
+    const sessionId = hookEvent.session_id || hookEvent.hook?.session_id;
+
+    // Enrich event with session name (but keep ALL original fields)
     const enrichedEvent = {
-      ...hookEvent,
-      session_name: getSessionName(hookEvent.session_id),
-      timestamp: hookEvent.timestamp || new Date().toISOString(),
+      ...hookEvent, // Preserve complete Claude Code payload
+      session_name: sessionId ? getSessionName(sessionId) : 'unknown',
+      _enriched_at: new Date().toISOString(), // Mark when we enriched it
     };
 
-    // Post event to backend
+    // Post complete event to backend
     const response = await postToBackend(enrichedEvent);
 
     // Return success to Claude Code
     const output: HookOutput = {
       continue: true,
-      message: response.message || `Posted ${enrichedEvent.hook_event_name} to backend`,
+      message: response.message || `Posted event to backend`,
     };
 
     console.log(JSON.stringify(output));
@@ -98,7 +101,7 @@ async function readStdin(): Promise<string> {
   return Buffer.concat(chunks).toString('utf-8');
 }
 
-async function postToBackend(event: HookInput): Promise<BackendResponse> {
+async function postToBackend(event: any): Promise<BackendResponse> {
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), TIMEOUT_MS);
 
@@ -108,7 +111,7 @@ async function postToBackend(event: HookInput): Promise<BackendResponse> {
       headers: {
         'Content-Type': 'application/json',
         'X-API-Key': API_KEY, // Custom authentication header
-        'X-Hook-Event': event.hook_event_name, // Custom metadata header
+        'X-Hook-Event': event.hook_event_name || event.hook?.hook_event_name || 'unknown', // Custom metadata header
         'User-Agent': 'claude-hooks-sdk/custom-backend-example',
       },
       body: JSON.stringify(event),

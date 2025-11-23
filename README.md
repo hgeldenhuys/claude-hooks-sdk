@@ -1008,8 +1008,16 @@ See the **[Documentation Index](./docs/README.md)** for complete list.
 
 ## Examples
 
+### Basic Examples
+
 Complete working examples in [`sample-extension/`](./sample-extension/):
 - **[event-logger-v2.ts](./sample-extension/event-logger-v2.ts)** - Production-ready event logger
+
+### Advanced Examples
+
+Looking for production-ready, sophisticated examples? Check out **[claude-hooks-sdk-examples](https://github.com/hgeldenhuys/claude-hooks-sdk-examples)** for:
+
+- **custom-backend** - Real-time event visualization server with markdown rendering, thinking blocks, smart polling, and analytics dashboards
 
 ### Security Validation
 

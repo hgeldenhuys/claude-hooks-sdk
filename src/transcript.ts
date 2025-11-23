@@ -19,11 +19,13 @@ export interface ConversationLine {
   role: 'user' | 'assistant' | 'system';
   content: string;
   timestamp?: string;
+  lineNumber?: number;  // Line number in transcript JSONL (1-indexed)
   [key: string]: any;
 }
 
 /**
  * Get the last line from a transcript file content
+ * Automatically includes the line number (1-indexed)
  */
 export function getLastTranscriptLine(content: string): ConversationLine | null {
   try {
@@ -33,7 +35,13 @@ export function getLastTranscriptLine(content: string): ConversationLine | null 
     }
 
     const lastLine = lines[lines.length - 1];
-    return JSON.parse(lastLine);
+    const parsed = JSON.parse(lastLine);
+
+    // Add line number (1-indexed)
+    return {
+      ...parsed,
+      lineNumber: lines.length,
+    };
   } catch (error) {
     return null;
   }

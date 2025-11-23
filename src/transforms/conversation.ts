@@ -13,6 +13,7 @@ export interface ConversationTurn {
     content: string | null;
     timestamp: string;
     toolsUsed: string[];
+    transcript_line_number?: number;  // Line number in transcript JSONL (1-indexed), null if transcript unavailable
   };
   user_prompts: Array<{
     text: string;
@@ -77,10 +78,12 @@ export class ConversationLogger {
 
     // Get last assistant message from transcript
     let assistantContent: string | null = null;
+    let transcriptLineNumber: number | undefined = undefined;
     if (context.getLastTranscriptLine) {
       try {
         const lastLine = await context.getLastTranscriptLine();
         assistantContent = this.extractAssistantContent(lastLine);
+        transcriptLineNumber = lastLine?.lineNumber;  // Extract line number
       } catch (error) {
         // Transcript not available
       }
@@ -91,6 +94,7 @@ export class ConversationLogger {
         content: assistantContent,
         timestamp: new Date().toISOString(),
         toolsUsed: Array.from(this.toolsUsedInTurn),
+        transcript_line_number: transcriptLineNumber,  // Include line number
       },
       user_prompts: [...this.userPrompts],
       turn_number: this.turnNumber,
@@ -166,10 +170,12 @@ export async function createConversationTurn(
   turnNumber: number
 ): Promise<ConversationTurn> {
   let assistantContent: string | null = null;
+  let transcriptLineNumber: number | undefined = undefined;
 
   if (context.getLastTranscriptLine) {
     try {
       const lastLine = await context.getLastTranscriptLine();
+      transcriptLineNumber = lastLine?.lineNumber;  // Extract line number
       if (lastLine?.message?.content) {
         const content = lastLine.message.content;
         if (Array.isArray(content)) {
@@ -191,6 +197,7 @@ export async function createConversationTurn(
       content: assistantContent,
       timestamp: new Date().toISOString(),
       toolsUsed: [],
+      transcript_line_number: transcriptLineNumber,  // Include line number
     },
     user_prompts: userPrompts,
     turn_number: turnNumber,

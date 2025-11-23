@@ -428,12 +428,10 @@ function generateEventCard(event: HookEvent): string {
         </div>
         ${contextDetails.join('')}
       </div>
-      ${Object.keys(event.context || {}).length > 0 ? `
-        <details style="margin-top: 15px;">
-          <summary style="cursor: pointer; color: #667eea; font-weight: 600;">View full context</summary>
-          <pre>${JSON.stringify(event.context, null, 2)}</pre>
-        </details>
-      ` : ''}
+      <details style="margin-top: 15px;">
+        <summary style="cursor: pointer; color: #667eea; font-weight: 600;">View full event payload</summary>
+        <pre>${JSON.stringify(event, null, 2)}</pre>
+      </details>
     </div>
   `;
 }

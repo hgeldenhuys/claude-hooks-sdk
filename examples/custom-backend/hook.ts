@@ -27,8 +27,7 @@
  * 3. Use Claude Code - events will be posted to the server
  */
 
-import { getSessionName, getLastTranscriptLine, parseTranscript } from 'claude-hooks-sdk';
-import { readFile } from 'node:fs/promises';
+import { getSessionName } from 'claude-hooks-sdk';
 
 interface HookInput {
   hook_event_name: string;
@@ -59,42 +58,20 @@ async function main() {
   try {
     // Read input from stdin (Claude Code sends hook data as JSON)
     const input = await readStdin();
-    const rawEvent: any = JSON.parse(input);
+    const hookEvent: any = JSON.parse(input); // Keep everything!
 
-    // Extract session_id and transcript_path
-    const sessionId = rawEvent.session_id;
-    const transcriptPath = rawEvent.transcript_path;
+    // Extract session_id from wherever it might be
+    const sessionId = hookEvent.session_id || hookEvent.hook?.session_id;
 
-    // Get recent conversation lines from transcript (last 20 lines for context)
-    let conversation = null;
-    let recentConversation: any[] = [];
-    if (transcriptPath) {
-      try {
-        const transcriptContent = await readFile(transcriptPath, 'utf-8');
-        conversation = getLastTranscriptLine(transcriptContent);
-
-        // Parse full transcript and get last 20 lines
-        const allLines = parseTranscript(transcriptContent);
-        recentConversation = allLines.slice(-20).map(line => line.content).filter(Boolean);
-      } catch (error) {
-        console.error('[Hook] Failed to read transcript:', error);
-      }
-    }
-
-    // Create HookEventPayload structure (SDK recommended format)
-    // This wraps the raw event with conversation context and timestamp
-    const payload = {
-      event: {
-        ...rawEvent,
-        session_name: sessionId ? getSessionName(sessionId) : 'unknown',
-      },
-      conversation,
-      recentConversation, // Add recent conversation history
-      timestamp: new Date().toISOString(),
+    // Enrich event with session name (but keep ALL original fields)
+    const enrichedEvent = {
+      ...hookEvent, // Preserve complete Claude Code payload
+      session_name: sessionId ? getSessionName(sessionId) : 'unknown',
+      _enriched_at: new Date().toISOString(), // Mark when we enriched it
     };
 
-    // Post complete payload to backend
-    const response = await postToBackend(payload);
+    // Post complete event to backend
+    const response = await postToBackend(enrichedEvent);
 
     // Return success to Claude Code
     const output: HookOutput = {
@@ -124,7 +101,7 @@ async function readStdin(): Promise<string> {
   return Buffer.concat(chunks).toString('utf-8');
 }
 
-async function postToBackend(payload: any): Promise<BackendResponse> {
+async function postToBackend(event: any): Promise<BackendResponse> {
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), TIMEOUT_MS);
 
@@ -134,10 +111,10 @@ async function postToBackend(payload: any): Promise<BackendResponse> {
       headers: {
         'Content-Type': 'application/json',
         'X-API-Key': API_KEY, // Custom authentication header
-        'X-Hook-Event': payload.event?.hook_event_name || 'unknown', // Custom metadata header
+        'X-Hook-Event': event.hook_event_name || event.hook?.hook_event_name || 'unknown', // Custom metadata header
         'User-Agent': 'claude-hooks-sdk/custom-backend-example',
       },
-      body: JSON.stringify(payload),
+      body: JSON.stringify(event),
       signal: controller.signal,
     });
 

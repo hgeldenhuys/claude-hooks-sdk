@@ -9,6 +9,7 @@
  * - Handles authentication with custom headers
  * - Returns the backend response to Claude Code
  * - Includes error handling and timeout management
+ * - Enriches events with session names
  *
  * Usage:
  * 1. Start the server: bun server.ts
@@ -25,6 +26,8 @@
  *    }
  * 3. Use Claude Code - events will be posted to the server
  */
+
+import { getSessionName } from 'claude-hooks-sdk';
 
 interface HookInput {
   hook_event_name: string;
@@ -57,13 +60,20 @@ async function main() {
     const input = await readStdin();
     const hookEvent: HookInput = JSON.parse(input);
 
+    // Enrich event with session name and timestamp
+    const enrichedEvent = {
+      ...hookEvent,
+      session_name: getSessionName(hookEvent.session_id),
+      timestamp: hookEvent.timestamp || new Date().toISOString(),
+    };
+
     // Post event to backend
-    const response = await postToBackend(hookEvent);
+    const response = await postToBackend(enrichedEvent);
 
     // Return success to Claude Code
     const output: HookOutput = {
       continue: true,
-      message: response.message || `Posted ${hookEvent.hook_event_name} to backend`,
+      message: response.message || `Posted ${enrichedEvent.hook_event_name} to backend`,
     };
 
     console.log(JSON.stringify(output));

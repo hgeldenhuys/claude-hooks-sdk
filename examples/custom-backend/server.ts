@@ -363,7 +363,12 @@ function generateEmptyState(): string {
 function generateEventCard(event: HookEvent): string {
   const eventType = event.hook_event_name || 'unknown';
   const badgeClass = `badge-${eventType.toLowerCase()}`;
-  const timestamp = new Date(event.timestamp).toLocaleString();
+
+  // Handle missing or invalid timestamps
+  const timestamp = event.timestamp
+    ? new Date(event.timestamp).toLocaleString()
+    : 'No timestamp';
+
   const sessionName = event.session_name || 'unnamed';
   const sessionId = event.session_id.substring(0, 8);
 

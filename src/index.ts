@@ -210,3 +210,15 @@ export {
   createUserPromptSubmitHook,
   type CreateUserPromptSubmitHookOptions,
 } from './userPromptSubmit';
+
+// Export event enrichment utilities
+export {
+  enrichEvent,
+  getGitContext,
+  readTranscript,
+  getLastMessage,
+  getLastMessages,
+  type EnrichedEventPayload,
+  type GitContext,
+  type EnrichEventOptions,
+} from './event-enricher';

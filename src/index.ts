@@ -204,3 +204,9 @@ export {
   type SessionInfo,
   type SessionsDatabase,
 } from './session-namer';
+
+// Export UserPromptSubmit hook helper
+export {
+  createUserPromptSubmitHook,
+  type CreateUserPromptSubmitHookOptions,
+} from './userPromptSubmit';

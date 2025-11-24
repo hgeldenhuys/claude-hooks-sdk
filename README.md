@@ -9,6 +9,7 @@
 ## Features
 
 ### Core Features
+- ⭐ **Session Context Injection** - ONE-LINE helper to inject session info into Claude's context (saves 50-100+ tokens/request)
 - ✅ **Full Type Safety** - Complete TypeScript types for all 10 Claude Code hook events
 - ✅ **Fluent API** - Intuitive `manager.onPreToolUse(...)` handler registration
 - ✅ **Non-Blocking by Default** - Hook failures don't block Claude Code (opt-in blocking available)
@@ -87,7 +88,71 @@ Install pre-built example hooks and comprehensive SDK skill via the Claude Code 
 - **edit-tracking** - Track files modified by Claude
 - **non-blocking** - Non-blocking error handling example
 
-## Quick Start
+## ⭐ Quick Start: Session Context Injection (Recommended)
+
+**The #1 most valuable hook pattern** - automatically inject session info into Claude's context on every prompt, saving 50-100+ tokens per request.
+
+Create `.claude/hooks/UserPromptSubmit.ts`:
+
+```typescript
+#!/usr/bin/env bun
+import { createUserPromptSubmitHook } from 'claude-hooks-sdk';
+
+// That's it! Session context automatically available to Claude
+createUserPromptSubmitHook();
+```
+
+Register in `.claude/settings.json`:
+
+```json
+{
+  "hooks": {
+    "UserPromptSubmit": [
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bun \"$CLAUDE_PROJECT_DIR\"/.claude/hooks/UserPromptSubmit.ts"
+          }
+        ]
+      }
+    ]
+  }
+}
+```
+
+**What this does:**
+- ✅ Injects session ID and name into Claude's context automatically
+- ✅ Saves 50-100+ tokens per request (no tool calls needed)
+- ✅ Zero latency - session info instantly available
+- ✅ Enables session-aware workflows, logging, and file management
+
+**Why this matters:** Claude doesn't know its own session ID by default. Without this hook, it has to use tools to read `.claude/sessions.json` on every request where it needs session info. This hook makes it available instantly.
+
+<details>
+<summary>Advanced customization</summary>
+
+```typescript
+createUserPromptSubmitHook({
+  // Custom session format
+  format: (name, id) => `🔵 Session: ${name} [${id.slice(0, 8)}]`,
+
+  // Add additional context
+  customContext: async (input) => {
+    const branch = execSync('git branch --show-current').toString().trim();
+    return `Git branch: ${branch}`;
+  },
+
+  // Custom error handling
+  onError: (err) => console.error('[Hook Error]', err)
+});
+```
+</details>
+
+---
+
+## Quick Start: General Hook Development
 
 Create a hook file (e.g., `.claude/hooks/my-hook.ts`):
 

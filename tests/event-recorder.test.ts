@@ -1,6 +1,6 @@
 import { describe, test, expect, beforeEach, afterEach } from 'bun:test';
-import { EventRecorder } from './event-recorder';
-import type { PostToolUseInput, UserPromptSubmitInput, StopInput } from './types';
+import { EventRecorder } from '../src/event-recorder';
+import type { PostToolUseInput, UserPromptSubmitInput, StopInput } from '../src/types';
 import * as fs from 'fs';
 import * as path from 'path';
 

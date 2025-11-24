@@ -3,8 +3,8 @@
  */
 
 import { describe, it, expect, beforeEach, mock, spyOn } from 'bun:test';
-import { createUserPromptSubmitHook } from './userPromptSubmit';
-import * as sessionNamer from './session-namer';
+import { createUserPromptSubmitHook } from '../src/userPromptSubmit';
+import * as sessionNamer from '../src/session-namer';
 
 describe('createUserPromptSubmitHook', () => {
   // Mock stdin

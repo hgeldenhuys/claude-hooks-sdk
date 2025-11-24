@@ -3,8 +3,8 @@
  */
 
 import { describe, it, expect, beforeEach, mock } from 'bun:test';
-import { enrichEvent, getGitContext, readTranscript } from './event-enricher';
-import type { AnyHookInput } from './types';
+import { enrichEvent, getGitContext, readTranscript } from '../src/event-enricher';
+import type { AnyHookInput } from '../src/types';
 
 describe('enrichEvent', () => {
   it('should enrich event with conversation and git context', async () => {

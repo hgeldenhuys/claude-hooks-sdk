@@ -1,5 +1,5 @@
 import { describe, test, expect, beforeEach, afterEach } from 'bun:test';
-import { PersistentState } from './persistent-state';
+import { PersistentState } from '../src/persistent-state';
 import * as fs from 'fs';
 import * as path from 'path';
 

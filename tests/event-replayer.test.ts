@@ -1,7 +1,7 @@
 import { describe, test, expect, beforeEach, afterEach } from 'bun:test';
-import { EventRecorder } from './event-recorder';
-import { EventReplayer } from './event-replayer';
-import type { PostToolUseInput, StopInput } from './types';
+import { EventRecorder } from '../src/event-recorder';
+import { EventReplayer } from '../src/event-replayer';
+import type { PostToolUseInput, StopInput } from '../src/types';
 import * as fs from 'fs';
 import * as path from 'path';
 

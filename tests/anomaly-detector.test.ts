@@ -1,6 +1,6 @@
 import { describe, test, expect, beforeEach } from 'bun:test';
-import { AnomalyDetector } from './anomaly-detector';
-import type { PostToolUseInput, StopInput } from './types';
+import { AnomalyDetector } from '../src/anomaly-detector';
+import type { PostToolUseInput, StopInput } from '../src/types';
 
 describe('AnomalyDetector', () => {
   const createToolUseInput = (sessionId: string, toolName: string, hasError: boolean = false): PostToolUseInput => ({

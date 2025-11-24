@@ -1,6 +1,6 @@
 import { describe, test, expect, beforeEach, afterEach } from 'bun:test';
-import { SessionAnalytics } from './session-analytics';
-import type { PostToolUseInput, StopInput } from './types';
+import { SessionAnalytics } from '../src/session-analytics';
+import type { PostToolUseInput, StopInput } from '../src/types';
 import * as fs from 'fs';
 import * as path from 'path';
 

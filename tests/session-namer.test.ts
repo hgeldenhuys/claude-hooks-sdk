@@ -3,7 +3,7 @@
  */
 
 import { describe, test, expect, beforeEach, afterEach } from 'bun:test';
-import { SessionNamer } from './session-namer';
+import { SessionNamer } from '../src/session-namer';
 import * as fs from 'fs';
 import * as path from 'path';
 

@@ -1,7 +1,7 @@
 import { describe, test, expect } from 'bun:test';
-import { middleware, compose } from './middleware';
-import type { AnyHookInput, AnyHookOutput, MiddlewareFunction } from './middleware';
-import type { PostToolUseInput } from './types';
+import { middleware, compose } from '../src/middleware';
+import type { AnyHookInput, AnyHookOutput, MiddlewareFunction } from '../src/middleware';
+import type { PostToolUseInput } from '../src/types';
 
 describe('Middleware', () => {
   const createMockInput = (): PostToolUseInput => ({

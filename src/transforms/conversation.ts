@@ -8,6 +8,32 @@
 
 import type { StopInput, UserPromptSubmitInput } from '../types';
 
+/**
+ * Content block in a transcript message
+ */
+interface ContentBlock {
+  type: string;
+  text?: string;
+}
+
+/**
+ * Transcript line structure with message content
+ */
+interface TranscriptLineWithMessage {
+  lineNumber?: number;
+  message?: {
+    content?: ContentBlock[] | string;
+  };
+}
+
+/**
+ * Extended UserPromptSubmitInput with additional prompt text fields
+ */
+interface UserPromptSubmitInputExtended extends UserPromptSubmitInput {
+  prompt_text?: string;
+  user_prompt?: string;
+}
+
 export interface ConversationTurn {
   assistant: {
     content: string | null;
@@ -51,7 +77,8 @@ export class ConversationLogger {
    * Record a user prompt (call from UserPromptSubmit hook)
    */
   recordUserPrompt(input: UserPromptSubmitInput): void {
-    const promptText = (input as any).prompt_text || (input as any).user_prompt || '';
+    const extendedInput = input as UserPromptSubmitInputExtended;
+    const promptText = extendedInput.prompt_text || extendedInput.user_prompt || input.prompt || '';
 
     this.userPrompts.push({
       text: promptText,
@@ -72,7 +99,7 @@ export class ConversationLogger {
    */
   async recordStop(
     input: StopInput,
-    context: { getLastTranscriptLine?: () => Promise<any> }
+    context: { getLastTranscriptLine?: () => Promise<TranscriptLineWithMessage | null> }
   ): Promise<ConversationTurn> {
     this.turnNumber++;
 
@@ -111,7 +138,7 @@ export class ConversationLogger {
   /**
    * Extract assistant content from transcript line
    */
-  private extractAssistantContent(transcriptLine: any): string | null {
+  private extractAssistantContent(transcriptLine: TranscriptLineWithMessage | null): string | null {
     if (!transcriptLine?.message?.content) {
       return null;
     }
@@ -121,8 +148,8 @@ export class ConversationLogger {
     // Handle array of content blocks
     if (Array.isArray(content)) {
       return content
-        .filter((block: any) => block.type === 'text')
-        .map((block: any) => block.text)
+        .filter((block: ContentBlock) => block.type === 'text')
+        .map((block: ContentBlock) => block.text || '')
         .join('\n');
     }
 
@@ -165,7 +192,7 @@ export class ConversationLogger {
  */
 export async function createConversationTurn(
   input: StopInput,
-  context: { getLastTranscriptLine?: () => Promise<any> },
+  context: { getLastTranscriptLine?: () => Promise<TranscriptLineWithMessage | null> },
   userPrompts: Array<{ text: string; timestamp: string }>,
   turnNumber: number
 ): Promise<ConversationTurn> {
@@ -180,14 +207,14 @@ export async function createConversationTurn(
         const content = lastLine.message.content;
         if (Array.isArray(content)) {
           assistantContent = content
-            .filter((block: any) => block.type === 'text')
-            .map((block: any) => block.text)
+            .filter((block: ContentBlock) => block.type === 'text')
+            .map((block: ContentBlock) => block.text || '')
             .join('\n');
         } else if (typeof content === 'string') {
           assistantContent = content;
         }
       }
-    } catch (error) {
+    } catch {
       // Transcript not available
     }
   }

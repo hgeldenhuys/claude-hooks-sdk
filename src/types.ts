@@ -419,3 +419,50 @@ export interface HookEventQueueEntry {
   lastAttempt: string;
   createdAt: string;
 }
+
+// ============================================================================
+// Internal Types (for SDK implementation)
+// ============================================================================
+
+/**
+ * Conversation message with usage and model data
+ * Used when enriching Stop events with data from the transcript
+ */
+export interface ConversationMessage {
+  message?: {
+    usage?: TokenUsage;
+    model?: string;
+  };
+}
+
+/**
+ * PostToolUse input with file path access for edit tracking
+ */
+export interface PostToolUseInputWithFilePath extends PostToolUseInput {
+  tool_input: {
+    file_path?: string;
+    edits?: Array<{ file_path?: string }>;
+    [key: string]: unknown;
+  };
+}
+
+/**
+ * SessionStart input with session_name property (enriched by HookManager)
+ */
+export interface SessionStartInputWithName extends SessionStartInput {
+  session_name: string;
+}
+
+/**
+ * Stop input with internal edit tracking marker
+ */
+export interface StopInputWithEditTracking extends StopInput {
+  _editedFiles?: string[];
+}
+
+/**
+ * Input with context field for logging extraction
+ */
+export type InputWithContext = AnyHookInput & {
+  context?: EnrichedContext;
+};

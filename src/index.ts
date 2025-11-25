@@ -222,3 +222,38 @@ export {
   type GitContext,
   type EnrichEventOptions,
 } from './event-enricher';
+
+// Export logger
+export {
+  Logger,
+  createLogger,
+  defaultLogger,
+  type LoggerOptions,
+  type LogLevel,
+} from './logger';
+
+// Export constants
+export {
+  DEFAULT_HANDLER_TIMEOUT_MS,
+  DEFAULT_MAX_QUEUE_DRAIN_PER_EVENT,
+  DEFAULT_MAX_RETRIES,
+  DEFAULT_CLIENT_ID,
+  EVENTS_LOG_FILENAME,
+  ERROR_QUEUE_FILENAME,
+  CONTEXT_FILENAME,
+  SESSIONS_FILENAME,
+  HOOKS_DIR,
+  LOGS_DIR,
+  CLAUDE_DIR,
+  EXIT_CODE_SUCCESS,
+  EXIT_CODE_ERROR,
+  EXIT_CODE_BLOCK,
+  MS_PER_SECOND,
+  MS_PER_MINUTE,
+  MS_PER_HOUR,
+  MS_PER_DAY,
+  ENV_CLAUDE_PROJECT_DIR,
+  TRANSACTION_ID_PREFIX,
+  PROMPT_ID_PREFIX,
+  REPO_INSTANCE_ID_PREFIX,
+} from './constants';

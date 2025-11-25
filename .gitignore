@@ -13,3 +13,18 @@ test-hook.ts
 # Exclude generated logs and session data
 **/logs/
 sessions.json
+
+# Hook-generated files
+.claude/hooks/*/error-queue.jsonl
+.claude/hooks/*/context.json
+.claude/sessions.json
+
+# SQLite state files
+*.db
+*.db-shm
+*.db-wal
+
+# IDE
+.vscode/
+*.swp
+*.swo

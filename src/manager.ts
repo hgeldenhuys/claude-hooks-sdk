@@ -6,18 +6,37 @@
 import { createReadStream, existsSync, mkdirSync, appendFileSync, readFileSync, writeFileSync } from 'fs';
 import { createInterface } from 'readline';
 import { join } from 'path';
-import { ContextTracker, type EventContext } from './context-tracker';
-import { SessionNamer, initSessionNamer } from './session-namer';
+import { ContextTracker } from './context-tracker';
+import { SessionNamer } from './session-namer';
+import { Logger } from './logger';
+import {
+  DEFAULT_HANDLER_TIMEOUT_MS,
+  DEFAULT_MAX_QUEUE_DRAIN_PER_EVENT,
+  DEFAULT_MAX_RETRIES,
+  DEFAULT_CLIENT_ID,
+  EVENTS_LOG_FILENAME,
+  ERROR_QUEUE_FILENAME,
+  HOOKS_DIR,
+  LOGS_DIR,
+  CLAUDE_DIR,
+  EXIT_CODE_SUCCESS,
+  EXIT_CODE_ERROR,
+  EXIT_CODE_BLOCK,
+  ENV_CLAUDE_PROJECT_DIR,
+} from './constants';
 import type {
   AnyHookInput,
   AnyHookOutput,
+  ConversationMessage,
   HookContext,
   HookEventName,
   HookHandler,
   HookResult,
+  InputWithContext,
   NotificationInput,
   NotificationOutput,
   PostToolUseInput,
+  PostToolUseInputWithFilePath,
   PostToolUseOutput,
   PreCompactInput,
   PreCompactOutput,
@@ -26,8 +45,10 @@ import type {
   SessionEndInput,
   SessionEndOutput,
   SessionStartInput,
+  SessionStartInputWithName,
   SessionStartOutput,
   StopInput,
+  StopInputWithEditTracking,
   StopOutput,
   SubagentStopInput,
   SubagentStopOutput,
@@ -153,10 +174,13 @@ export interface HookManagerOptions {
  * Provides a fluent API for registering and executing hook handlers
  */
 export class HookManager {
-  private handlers: Map<HookEventName, HookHandler<any, any>[]> = new Map();
+  // Note: Using any[] here is intentional - handlers are type-safe at registration time
+  // via the on<EventType> methods, but stored generically for runtime flexibility
+  private handlers: Map<HookEventName, HookHandler<AnyHookInput, AnyHookOutput>[]> = new Map();
   private plugins: HookPlugin[] = [];
   private options: HookManagerOptions;
   private sessionNamer: SessionNamer;
+  private logger: Logger;
   private logFilePath?: string;
   private errorQueuePath?: string;
   private maxRetries: number;
@@ -166,11 +190,14 @@ export class HookManager {
 
   constructor(options: HookManagerOptions = {}) {
     this.options = options;
-    this.maxRetries = options.maxRetries ?? 3;
+    this.maxRetries = options.maxRetries ?? DEFAULT_MAX_RETRIES;
 
-    const clientId = this.options.clientId || 'default';
-    const baseDir = process.env.CLAUDE_PROJECT_DIR || process.cwd();
-    const logDir = this.options.logDir || join(baseDir, '.claude', 'hooks', clientId);
+    const clientId = this.options.clientId || DEFAULT_CLIENT_ID;
+    const baseDir = process.env[ENV_CLAUDE_PROJECT_DIR] || process.cwd();
+    const logDir = this.options.logDir || join(baseDir, CLAUDE_DIR, HOOKS_DIR, clientId);
+
+    // Initialize logger
+    this.logger = new Logger({ debug: options.debug, prefix: `claude-hooks-sdk:${clientId}` });
 
     // Ensure log directory exists if logging, failure queue, or context tracking is enabled
     if (this.options.logEvents || this.options.enableFailureQueue || this.options.enableContextTracking !== false) {
@@ -181,16 +208,16 @@ export class HookManager {
 
     // Setup event logging if enabled
     if (this.options.logEvents) {
-      const logsDir = join(logDir, 'logs');
+      const logsDir = join(logDir, LOGS_DIR);
       if (!existsSync(logsDir)) {
         mkdirSync(logsDir, { recursive: true });
       }
-      this.logFilePath = join(logsDir, 'events.jsonl');
+      this.logFilePath = join(logsDir, EVENTS_LOG_FILENAME);
     }
 
     // Setup error queue if enabled
     if (this.options.enableFailureQueue) {
-      this.errorQueuePath = join(logDir, 'error-queue.jsonl');
+      this.errorQueuePath = join(logDir, ERROR_QUEUE_FILENAME);
     }
 
     // Setup context tracking
@@ -288,7 +315,9 @@ export class HookManager {
     if (!this.handlers.has(eventName)) {
       this.handlers.set(eventName, []);
     }
-    this.handlers.get(eventName)!.push(handler);
+    // Cast is safe because handlers are stored by event name and only called with matching input types
+    // Double cast through unknown is required due to TypeScript's strict variance checking
+    this.handlers.get(eventName)!.push(handler as unknown as HookHandler<AnyHookInput, AnyHookOutput>);
     return this;
   }
 
@@ -298,7 +327,7 @@ export class HookManager {
    */
   async execute(input: AnyHookInput): Promise<HookResult<AnyHookOutput>> {
     // Wrap execution in timeout if configured
-    const timeout = this.options.handlerTimeout ?? 30000; // Default 30 seconds
+    const timeout = this.options.handlerTimeout ?? DEFAULT_HANDLER_TIMEOUT_MS;
 
     if (timeout > 0) {
       return this.executeWithTimeout(input, timeout);
@@ -338,45 +367,45 @@ export class HookManager {
     const handlers = this.handlers.get(input.hook_event_name) || [];
 
     if (handlers.length === 0) {
-      return { exitCode: 0 };
+      return { exitCode: EXIT_CODE_SUCCESS };
     }
 
     const context = createHookContext(input.transcript_path);
-    let finalResult: HookResult<AnyHookOutput> = { exitCode: 0 };
+    let finalResult: HookResult<AnyHookOutput> = { exitCode: EXIT_CODE_SUCCESS };
 
     // Get last conversation line for plugins
-    let conversation = null;
+    let conversation: ConversationMessage | null = null;
     try {
       const fullTranscript = await context.getFullTranscript();
       if (fullTranscript.length > 0) {
         const lastLine = fullTranscript[fullTranscript.length - 1];
-        conversation = lastLine.content;
+        conversation = lastLine.content as ConversationMessage;
 
         // Enrich Stop events with usage/model data from conversation
         if ((input.hook_event_name === 'Stop' || input.hook_event_name === 'SubagentStop') && conversation?.message) {
-          const enriched = input as any;
-          enriched.usage = conversation.message.usage;
-          enriched.model = conversation.message.model;
+          const stopInput = input as StopInput | SubagentStopInput;
+          stopInput.usage = conversation.message.usage;
+          stopInput.model = conversation.message.model;
         }
       }
-    } catch (error) {
+    } catch {
       // Transcript not available - this is okay
       conversation = null;
     }
 
     // Enrich SessionStart events with session name
     if (input.hook_event_name === 'SessionStart') {
-      const sessionStartInput = input as SessionStartInput;
+      const sessionStartInput = input as SessionStartInputWithName;
       const sessionName = this.sessionNamer.getOrCreateName(
         sessionStartInput.session_id,
         sessionStartInput.source
       );
-      (sessionStartInput as any).session_name = sessionName;
+      sessionStartInput.session_name = sessionName;
 
       // Return system message to inform Claude of session name
       // This is returned early so Claude sees the name immediately
       finalResult = {
-        exitCode: 0,
+        exitCode: EXIT_CODE_SUCCESS,
         output: {
           systemMessage: `📝 Session: ${sessionName}`,
         },
@@ -388,9 +417,7 @@ export class HookManager {
       try {
         await plugin.onBeforeExecute?.(input, context);
       } catch (error) {
-        if (this.options.debug) {
-          console.error(`[claude-hooks-sdk] Plugin "${plugin.name}" onBeforeExecute failed:`, error);
-        }
+        this.logger.error(`Plugin "${plugin.name}" onBeforeExecute failed:`, error);
         // Continue with other plugins - don't let one plugin crash the hook
       }
     }
@@ -408,7 +435,7 @@ export class HookManager {
       };
 
       // If a handler returns exit code 2 or sets continue: false, stop the chain
-      if (result.exitCode === 2 || result.output?.continue === false) {
+      if (result.exitCode === EXIT_CODE_BLOCK || result.output?.continue === false) {
         break;
       }
     }
@@ -418,9 +445,7 @@ export class HookManager {
       try {
         await plugin.onAfterExecute?.(input, finalResult, context, conversation);
       } catch (error) {
-        if (this.options.debug) {
-          console.error(`[claude-hooks-sdk] Plugin "${plugin.name}" onAfterExecute failed:`, error);
-        }
+        this.logger.error(`Plugin "${plugin.name}" onAfterExecute failed:`, error);
         // Continue with other plugins - don't let one plugin crash the hook
       }
     }
@@ -446,9 +471,7 @@ export class HookManager {
       const lines = content.trim().split('\n').filter(line => line.length > 0);
       return lines.map(line => JSON.parse(line));
     } catch (error) {
-      if (this.options.debug) {
-        console.error('[claude-hooks-sdk] Failed to read error queue:', error);
-      }
+      this.logger.error('Failed to read error queue:', error);
       return [];
     }
   }
@@ -471,9 +494,7 @@ export class HookManager {
       const content = queue.map(item => JSON.stringify(item)).join('\n') + '\n';
       writeFileSync(this.errorQueuePath, content);
     } catch (error) {
-      if (this.options.debug) {
-        console.error('[claude-hooks-sdk] Failed to write error queue:', error);
-      }
+      this.logger.error('Failed to write error queue:', error);
     }
   }
 
@@ -492,9 +513,7 @@ export class HookManager {
     });
     this.writeErrorQueue(queue);
 
-    if (this.options.debug) {
-      console.error(`[claude-hooks-sdk] Added event to error queue (size: ${queue.length})`);
-    }
+    this.logger.logDebug(`Added event to error queue (size: ${queue.length})`);
   }
 
   /**
@@ -512,9 +531,7 @@ export class HookManager {
     const eventsToProcess = limit ? queue.slice(0, limit) : queue;
     const eventsToKeep = limit ? queue.slice(limit) : [];
 
-    if (this.options.debug) {
-      console.error(`[claude-hooks-sdk] Draining error queue (${eventsToProcess.length} of ${queue.length} events)`);
-    }
+    this.logger.logDebug(`Draining error queue (${eventsToProcess.length} of ${queue.length} events)`);
 
     const remainingQueue: FailedEvent[] = [...eventsToKeep];
 
@@ -523,7 +540,7 @@ export class HookManager {
         // Retry the failed event
         const result = await this.execute(failedEvent.event);
 
-        if (result.exitCode !== 0) {
+        if (result.exitCode !== EXIT_CODE_SUCCESS) {
           // Still failing
           if (failedEvent.retryCount < this.maxRetries) {
             // Add back to queue with incremented retry count
@@ -533,24 +550,18 @@ export class HookManager {
               timestamp: new Date().toISOString(),
             });
 
-            if (this.options.debug) {
-              console.error(
-                `[claude-hooks-sdk] Event still failing (retry ${failedEvent.retryCount + 1}/${this.maxRetries})`
-              );
-            }
+            this.logger.logDebug(
+              `Event still failing (retry ${failedEvent.retryCount + 1}/${this.maxRetries})`
+            );
           } else {
             // Max retries reached, drop the event
-            if (this.options.debug) {
-              console.error(
-                `[claude-hooks-sdk] Event dropped after ${this.maxRetries} retries: ${failedEvent.error}`
-              );
-            }
+            this.logger.logDebug(
+              `Event dropped after ${this.maxRetries} retries: ${failedEvent.error}`
+            );
           }
         } else {
           // Successfully processed
-          if (this.options.debug) {
-            console.error(`[claude-hooks-sdk] Successfully processed queued event`);
-          }
+          this.logger.logDebug('Successfully processed queued event');
         }
       } catch (error) {
         // Error during retry
@@ -581,35 +592,29 @@ export class HookManager {
     if (eventName === 'UserPromptSubmit') {
       this.trackingEdits = true;
       this.editedFiles.clear();
-      if (this.options.debug) {
-        console.error('[claude-hooks-sdk] Started tracking edits');
-      }
+      this.logger.logDebug('Started tracking edits');
     }
 
     // Track file-modifying tools in PostToolUse
     if (eventName === 'PostToolUse' && this.trackingEdits) {
-      const toolInput = input as any;
-      const toolName = toolInput.tool_name;
+      const postToolInput = input as PostToolUseInputWithFilePath;
+      const toolName = postToolInput.tool_name;
 
       // Track Edit, Write, and MultiEdit tools
       if (toolName === 'Edit' || toolName === 'Write') {
-        const filePath = toolInput.tool_input?.file_path;
+        const filePath = postToolInput.tool_input?.file_path;
         if (filePath) {
           this.editedFiles.add(filePath);
-          if (this.options.debug) {
-            console.error(`[claude-hooks-sdk] Tracked ${toolName}: ${filePath}`);
-          }
+          this.logger.logDebug(`Tracked ${toolName}: ${filePath}`);
         }
       } else if (toolName === 'MultiEdit') {
         // MultiEdit has an array of edits
-        const edits = toolInput.tool_input?.edits;
+        const edits = postToolInput.tool_input?.edits;
         if (Array.isArray(edits)) {
           for (const edit of edits) {
             if (edit.file_path) {
               this.editedFiles.add(edit.file_path);
-              if (this.options.debug) {
-                console.error(`[claude-hooks-sdk] Tracked MultiEdit: ${edit.file_path}`);
-              }
+              this.logger.logDebug(`Tracked MultiEdit: ${edit.file_path}`);
             }
           }
         }
@@ -619,11 +624,10 @@ export class HookManager {
     // Attach edited files to Stop event and reset
     if (eventName === 'Stop' && this.trackingEdits) {
       // Add edited files to the input for context enrichment
-      (input as any)._editedFiles = Array.from(this.editedFiles);
+      const stopInput = input as StopInputWithEditTracking;
+      stopInput._editedFiles = Array.from(this.editedFiles);
 
-      if (this.options.debug) {
-        console.error(`[claude-hooks-sdk] Stop event - tracked ${this.editedFiles.size} edited files`);
-      }
+      this.logger.logDebug(`Stop event - tracked ${this.editedFiles.size} edited files`);
 
       // Reset tracking
       this.trackingEdits = false;
@@ -634,12 +638,13 @@ export class HookManager {
   /**
    * Log event to JSONL file
    */
-  private logEvent(input: AnyHookInput, result: HookResult<AnyHookOutput>, conversation: any): void {
+  private logEvent(input: AnyHookInput, result: HookResult<AnyHookOutput>, conversation: ConversationMessage | null): void {
     if (!this.logFilePath) return;
 
     try {
       // Extract context from enriched event (if context tracking is enabled)
-      const { context, ...hookWithoutContext } = input as any;
+      const inputWithContext = input as InputWithContext;
+      const { context, ...hookWithoutContext } = inputWithContext;
 
       const logEntry = {
         input: {
@@ -650,7 +655,7 @@ export class HookManager {
         },
         output: {
           exitCode: result.exitCode,
-          success: result.exitCode === 0,
+          success: result.exitCode === EXIT_CODE_SUCCESS,
           hasOutput: result.output !== undefined,
           hasStdout: result.stdout !== undefined,
           hasStderr: result.stderr !== undefined,
@@ -660,9 +665,7 @@ export class HookManager {
       appendFileSync(this.logFilePath, JSON.stringify(logEntry) + '\n');
     } catch (error) {
       // Silently fail - logging should never break the hook
-      if (this.options.debug) {
-        console.error('[claude-hooks-sdk] Failed to log event:', error);
-      }
+      this.logger.error('Failed to log event:', error);
     }
   }
 
@@ -716,14 +719,12 @@ export class HookManager {
    * Reads from stdin, executes handlers, and writes to stdout/stderr
    */
   async run(): Promise<void> {
-    let input = await this.readStdin();
+    const input = await this.readStdin();
 
     // Note: Context enrichment happens in execute() method, not here
     // This prevents double enrichment bug
 
-    if (this.options.debug) {
-      console.error(`[claude-hooks-sdk] Event: ${input.hook_event_name}`);
-    }
+    this.logger.logDebug(`Event: ${input.hook_event_name}`);
 
     // Check if failure queue is enabled
     if (this.options.enableFailureQueue) {
@@ -735,9 +736,7 @@ export class HookManager {
         const queueBefore = this.readErrorQueue();
 
         if (queueBefore.length > 0) {
-          if (this.options.debug) {
-            console.error(`[claude-hooks-sdk] Draining ${queueBefore.length} queued events before processing new event`);
-          }
+          this.logger.logDebug(`Draining ${queueBefore.length} queued events before processing new event`);
 
           // Notify consumer that we're draining the queue
           if (this.options.onErrorQueueNotEmpty) {
@@ -745,26 +744,22 @@ export class HookManager {
           }
 
           // Drain the queue with limit to prevent blocking
-          const drainLimit = this.options.maxQueueDrainPerEvent ?? 10;
+          const drainLimit = this.options.maxQueueDrainPerEvent ?? DEFAULT_MAX_QUEUE_DRAIN_PER_EVENT;
           await this.drainErrorQueue(drainLimit);
 
           const queueAfter = this.readErrorQueue();
 
           // If queue still has items after draining, queue the current event
           if (queueAfter.length > 0) {
-            if (this.options.debug) {
-              console.error(`[claude-hooks-sdk] Queue still has ${queueAfter.length} events, queueing current event`);
-            }
+            this.logger.logDebug(`Queue still has ${queueAfter.length} events, queueing current event`);
 
             this.addToErrorQueue(input, 'Queued due to existing error queue', 0);
-            process.exit(0);
+            process.exit(EXIT_CODE_SUCCESS);
             return;
           }
 
           // Queue is now empty, continue to process current event
-          if (this.options.debug) {
-            console.error(`[claude-hooks-sdk] Queue drained successfully, processing current event`);
-          }
+          this.logger.logDebug('Queue drained successfully, processing current event');
         }
       }
 
@@ -773,7 +768,7 @@ export class HookManager {
         const result = await this.execute(input);
 
         // If execution failed, add to error queue
-        if (result.exitCode !== 0) {
+        if (result.exitCode !== EXIT_CODE_SUCCESS) {
           const errorMessage = result.stderr || result.stdout || 'Handler returned non-zero exit code';
           this.addToErrorQueue(input, errorMessage, 0);
 
@@ -793,12 +788,12 @@ export class HookManager {
           console.log(result.stdout);
         }
 
-        if (result.stderr && result.exitCode === 0) {
+        if (result.stderr && result.exitCode === EXIT_CODE_SUCCESS) {
           console.error(result.stderr);
         }
 
         // Exit with success (non-blocking mode) or actual exit code (blocking mode)
-        process.exit(this.options.blockOnFailure ? result.exitCode : 0);
+        process.exit(this.options.blockOnFailure ? result.exitCode : EXIT_CODE_SUCCESS);
       } catch (error) {
         // Execution threw an error, add to error queue
         const errorMessage = error instanceof Error ? error.message : String(error);
@@ -807,13 +802,11 @@ export class HookManager {
         // Only block Claude Code if blockOnFailure is true
         if (this.options.blockOnFailure) {
           console.error(errorMessage);
-          process.exit(1);
+          process.exit(EXIT_CODE_ERROR);
         } else {
           // Log error but exit successfully (non-blocking)
-          if (this.options.debug) {
-            console.error(`[claude-hooks-sdk] Error (non-blocking): ${errorMessage}`);
-          }
-          process.exit(0);
+          this.logger.logDebug(`Error (non-blocking): ${errorMessage}`);
+          process.exit(EXIT_CODE_SUCCESS);
         }
       }
     } else {
@@ -833,7 +826,7 @@ export class HookManager {
         }
 
         // Exit with success (non-blocking mode) or actual exit code (blocking mode)
-        process.exit(this.options.blockOnFailure ? result.exitCode : 0);
+        process.exit(this.options.blockOnFailure ? result.exitCode : EXIT_CODE_SUCCESS);
       } catch (error) {
         // Execution threw an error
         const errorMessage = error instanceof Error ? error.message : String(error);
@@ -841,13 +834,11 @@ export class HookManager {
         // Only block Claude Code if blockOnFailure is true
         if (this.options.blockOnFailure) {
           console.error(errorMessage);
-          process.exit(1);
+          process.exit(EXIT_CODE_ERROR);
         } else {
           // Log error but exit successfully (non-blocking)
-          if (this.options.debug) {
-            console.error(`[claude-hooks-sdk] Error (non-blocking): ${errorMessage}`);
-          }
-          process.exit(0);
+          this.logger.logDebug(`Error (non-blocking): ${errorMessage}`);
+          process.exit(EXIT_CODE_SUCCESS);
         }
       }
     }

@@ -7,6 +7,21 @@
 
 import type { PostToolUseInput } from '../types';
 
+/**
+ * TodoWrite tool input structure
+ */
+interface TodoWriteToolInput {
+  todos?: Todo[];
+}
+
+/**
+ * TodoWrite tool response structure
+ */
+interface TodoWriteToolResponse {
+  oldTodos?: Todo[];
+  newTodos?: Todo[];
+}
+
 export interface Todo {
   content: string;
   status: 'pending' | 'in_progress' | 'completed';
@@ -65,8 +80,8 @@ export class TodoTracker {
       return null;
     }
 
-    const toolInput = input.tool_input as any;
-    const toolResponse = input.tool_response as any;
+    const toolInput = input.tool_input as TodoWriteToolInput;
+    const toolResponse = input.tool_response as TodoWriteToolResponse;
 
     const oldTodos = toolResponse?.oldTodos || [];
     const newTodos = toolInput?.todos || toolResponse?.newTodos || [];
@@ -193,8 +208,8 @@ export function extractTodoEvent(input: PostToolUseInput): TodoEvent | null {
     return null;
   }
 
-  const toolInput = input.tool_input as any;
-  const toolResponse = input.tool_response as any;
+  const toolInput = input.tool_input as TodoWriteToolInput;
+  const toolResponse = input.tool_response as TodoWriteToolResponse;
 
   const oldTodos = toolResponse?.oldTodos || [];
   const newTodos = toolInput?.todos || toolResponse?.newTodos || [];

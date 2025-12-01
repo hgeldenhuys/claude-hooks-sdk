@@ -232,6 +232,20 @@ export {
   type LogLevel,
 } from './logger';
 
+// Export Hook Dispatcher (modern handler architecture)
+export {
+  HookDispatcher,
+  type DispatcherHandler,
+  type DispatcherHandlerResult,
+  type HookDispatcherOptions,
+} from './hook-dispatcher';
+
+// Export built-in handlers
+export {
+  builtInHandlers,
+  sessionStartNamerHandler,
+} from './handlers';
+
 // Export constants
 export {
   DEFAULT_HANDLER_TIMEOUT_MS,

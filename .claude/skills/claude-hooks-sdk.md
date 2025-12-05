@@ -1,8 +1,9 @@
 ---
 name: claude-hooks-sdk
 description: Expert guide for building Claude Code hooks using claude-hooks-sdk. Provides setup, configuration, patterns, troubleshooting, and best practices for the hooks SDK.
-version: 0.4.4
-tags: [hooks, sdk, typescript, claude-code, observability]
+version: 0.8.5
+tags: [hooks, sdk, typescript, claude-code, observability, logger, transforms]
+last_updated: 2025-12-05
 ---
 
 # Claude Hooks SDK Expert
@@ -669,10 +670,73 @@ const manager = new HookManager({
 });
 ```
 
+## New in v0.8.5
+
+### Logger Utility
+
+Structured logging with debug mode support:
+
+```typescript
+import { createLogger } from 'claude-hooks-sdk';
+
+const logger = createLogger('my-hook');
+
+logger.info('Always shown');
+logger.logDebug('Only shown when DEBUG=1');
+logger.warn('Warning message');
+logger.error(new Error('Something failed'));
+```
+
+### Constants
+
+Centralized magic numbers:
+
+```typescript
+import {
+  DEFAULT_HANDLER_TIMEOUT_MS,
+  DEFAULT_MAX_RETRIES,
+  EXIT_CODE_SUCCESS,
+  EXIT_CODE_ERROR,
+  EXIT_CODE_BLOCK,
+} from 'claude-hooks-sdk';
+```
+
+### Transforms
+
+Production-ready utilities:
+
+```typescript
+import {
+  ConversationLogger,
+  FileChangeTracker,
+  TodoTracker,
+  AISummarizer,
+} from 'claude-hooks-sdk';
+
+const conversationLogger = new ConversationLogger();
+const fileTracker = new FileChangeTracker();
+
+manager.onUserPromptSubmit((input) => {
+  conversationLogger.recordUserPrompt(input);
+  return success();
+});
+
+manager.onPostToolUse((input) => {
+  fileTracker.recordChange(input);
+  return success();
+});
+
+manager.onStop(async (input, context) => {
+  const turn = await conversationLogger.recordStop(input, context);
+  const changes = fileTracker.getBatch(input.session_id);
+  return success();
+});
+```
+
 ## Version Information
 
-**SDK Version:** 0.4.4
-**Release Date:** November 2025
+**SDK Version:** 0.8.5
+**Release Date:** December 2025
 **npm:** https://www.npmjs.com/package/claude-hooks-sdk
 **GitHub:** https://github.com/hgeldenhuys/claude-hooks-sdk
 

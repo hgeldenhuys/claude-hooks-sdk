@@ -4,9 +4,31 @@
     "name": "Herman Geldenhuys",
     "email": "hgeldenhuys@gmail.com"
   },
-  "description": "Production-ready plugins for Claude Code hook extensions with analytics, monitoring, and debugging",
+  "description": "Production-ready plugins for Claude Code hook extensions with analytics, monitoring, debugging, and skills",
   "homepage": "https://github.com/hgeldenhuys/claude-hooks-sdk",
   "plugins": [
+    {
+      "name": "skill-claude-code-hooks",
+      "source": "./.claude-plugin/plugins/skill-claude-code-hooks",
+      "version": "0.8.6",
+      "description": "Skill: Guide for implementing Claude Code hooks - bash scripts and TypeScript patterns for all 9 hook events.",
+      "author": {
+        "name": "Herman Geldenhuys",
+        "email": "hgeldenhuys@gmail.com"
+      },
+      "keywords": ["skill", "hooks", "guide", "bash", "typescript", "documentation"]
+    },
+    {
+      "name": "skill-claude-hooks-sdk",
+      "source": "./.claude-plugin/plugins/skill-claude-hooks-sdk",
+      "version": "0.8.6",
+      "description": "Skill: Expert guide for using claude-hooks-sdk with HookManager, Logger, transforms, and advanced patterns.",
+      "author": {
+        "name": "Herman Geldenhuys",
+        "email": "hgeldenhuys@gmail.com"
+      },
+      "keywords": ["skill", "sdk", "typescript", "hookmanager", "transforms", "logger"]
+    },
     {
       "name": "analytics-tracker",
       "source": "./.claude-plugin/plugins/analytics-tracker",

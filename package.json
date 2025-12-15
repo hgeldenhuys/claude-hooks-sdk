@@ -33,7 +33,8 @@
     "lint": "tsc --noEmit",
     "clean": "rm -rf dist",
     "prebuild": "bun run clean",
-    "prepublishOnly": "bun run lint && bun run build && bun test"
+    "prepublishOnly": "bun run lint && bun run build && bun test",
+    "postinstall": "[ -d dist ] || bun run build"
   },
   "keywords": [
     "claude",
@@ -64,7 +65,9 @@
     "url": "https://github.com/hgeldenhuys/claude-hooks-sdk/issues"
   },
   "dependencies": {
+    "@inquirer/prompts": "^8.1.0",
     "better-sqlite3": "^12.4.6",
+    "claude-hooks-sdk": "^0.8.6",
     "unique-names-generator": "^4.7.1"
   }
 }
